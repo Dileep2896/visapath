@@ -1,0 +1,68 @@
+Employment-Based Green Card Process
+
+Overview:
+The employment-based green card (permanent residence) process allows foreign workers to obtain permanent residency in the United States through their employer. The most common categories for international students transitioning from H-1B are EB-2 and EB-3.
+
+Employment-Based Categories:
+1. EB-1: Priority Workers
+   - EB-1A: Extraordinary Ability (self-petition possible)
+   - EB-1B: Outstanding Professors and Researchers
+   - EB-1C: Multinational Managers and Executives
+   - Generally shorter wait times, no PERM required for EB-1A
+
+2. EB-2: Advanced Degree Professionals
+   - Requires master's degree or bachelor's + 5 years progressive experience
+   - Requires PERM labor certification (in most cases)
+   - EB-2 NIW (National Interest Waiver): Self-petition, no employer sponsorship needed
+
+3. EB-3: Skilled Workers and Professionals
+   - Requires bachelor's degree or 2+ years of experience
+   - Requires PERM labor certification
+
+The PERM Process (Labor Certification):
+1. Employer conducts recruitment to test the US labor market
+   - Must advertise the position and demonstrate no qualified US workers are available
+   - Recruitment period: Typically 6-12 months
+2. Employer files ETA Form 9089 with Department of Labor
+3. DOL reviews and certifies (or audits)
+4. Processing time: 6-18 months (can be longer if audited)
+
+I-140 Petition (Immigrant Petition):
+- Filed by employer after PERM is certified
+- Establishes that the foreign worker qualifies for the EB category
+- Processing time: 6-12 months (regular), 15 business days (premium processing)
+- Approved I-140 locks in your priority date (your place in line)
+
+I-485 Adjustment of Status (or Consular Processing):
+- Final step to obtain green card
+- Can only file when your priority date is current (visa number available)
+- For India EB-2/EB-3: Wait can be 10-30+ years due to per-country limits
+- For China EB-2/EB-3: Wait can be 4-8 years
+- For Rest of World: Usually current or short wait
+
+Per-Country Limits:
+- Each country is limited to 7% of total employment-based green cards per year
+- This creates massive backlogs for India and China
+- Bills to eliminate per-country limits have been proposed but not yet passed
+
+Important Timelines by Country (Approximate):
+- India EB-1: 2-4 years
+- India EB-2: 10-30+ years
+- India EB-3: 10-25+ years
+- China EB-1: 1-3 years
+- China EB-2: 4-8 years
+- China EB-3: 4-8 years
+- Rest of World (all categories): Usually current to 2 years
+
+AC21 Provisions (Maintaining Status During Long Waits):
+- If I-140 is approved and PERM was filed 365+ days ago, H-1B can be extended beyond the 6-year limit
+- This allows workers from backlogged countries to continue working while waiting
+- H-1B extensions in 3-year increments until green card is available
+- If I-485 has been pending for 180+ days, worker can change jobs (job portability)
+
+Tips for International Students:
+- Start the green card process as early as possible, especially if from India or China
+- Consider EB-1 eligibility if you have strong publications, patents, or achievements
+- EB-2 NIW does not require employer sponsorship and can be filed while on H-1B
+- Keep all immigration documents organized — you'll need them for every step
+- Maintain valid non-immigrant status throughout the entire process

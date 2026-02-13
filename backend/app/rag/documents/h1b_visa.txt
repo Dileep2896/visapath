@@ -1,0 +1,57 @@
+H-1B Specialty Occupation Visa
+
+Overview:
+The H-1B visa is a non-immigrant visa that allows US employers to employ foreign workers in specialty occupations requiring a bachelor's degree or higher. It is the most common pathway for international students to work in the US after their student status ends.
+
+Annual Cap:
+- Regular cap: 65,000 visas per fiscal year
+- US Master's cap (advanced degree exemption): Additional 20,000 visas
+- Cap-exempt employers (universities, research institutions, government research organizations) are NOT subject to the cap
+- Fiscal year runs October 1 to September 30
+
+H-1B Electronic Registration and Lottery:
+- Employers must electronically register beneficiaries during the registration period (typically March 1-31)
+- Registration fee: $215 per beneficiary (as of 2024)
+- If registrations exceed the cap, USCIS conducts a lottery
+- Lottery selection rate has been approximately 25-30% in recent years
+- Selected registrants are notified, and employers have 90 days to file the full H-1B petition
+- US Master's cap registrants get two chances: first in the advanced degree lottery, then in the regular cap lottery
+
+Key Requirements:
+- Job must qualify as a "specialty occupation" requiring at least a bachelor's degree
+- Worker must have a bachelor's degree or higher (or equivalent) in a related field
+- Employer must pay at least the prevailing wage for the position and location
+- Employer must file a Labor Condition Application (LCA) with the Department of Labor
+
+H-1B Petition Process:
+1. Employer determines need for H-1B worker
+2. Employer files Labor Condition Application (LCA) with DOL
+3. Employer registers beneficiary during registration period
+4. If selected in lottery, employer files Form I-129 with USCIS
+5. USCIS adjudicates the petition
+6. If approved, H-1B status begins October 1
+
+Duration:
+- Initial period: Up to 3 years
+- Extension: Up to 3 additional years (6 years total)
+- Beyond 6 years: Possible if I-140 has been approved or if PERM has been filed for 365+ days (AC21 provisions)
+
+Cap-Gap Extension:
+- If an F-1 student's OPT expires and they have a pending or approved H-1B petition for October 1 start:
+- Their F-1 status and work authorization are automatically extended from April 1 to October 1
+- This is called the "cap-gap" extension
+- The cap-gap only applies if the H-1B petition is filed before OPT expires
+
+Changing Employers (H-1B Transfer/Portability):
+- H-1B workers can change employers
+- New employer must file a new H-1B petition
+- Worker can begin working for new employer as soon as the new petition is filed (portability)
+- No need to wait for approval
+- The transfer is NOT subject to the annual cap
+
+Important Notes:
+- H-1B is employer-specific — you can only work for the petitioning employer
+- If you lose your job, you have a 60-day grace period to find a new employer or change status
+- Premium processing ($2,805) is available for faster adjudication (15 business days)
+- Spouse and children can apply for H-4 dependent status
+- H-4 spouses may be eligible for work authorization (H-4 EAD) if the H-1B holder has an approved I-140

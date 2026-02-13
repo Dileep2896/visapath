@@ -1,0 +1,58 @@
+STEM OPT Extension (24-Month Extension)
+
+Overview:
+The STEM OPT extension allows F-1 students with degrees in STEM (Science, Technology, Engineering, Mathematics) fields to extend their post-completion OPT by an additional 24 months, for a total of 36 months of work authorization.
+
+Eligibility Requirements:
+- Must have a bachelor's, master's, or doctoral degree in a STEM field listed on the DHS STEM Designated Degree Program List
+- Must currently be on an approved period of post-completion OPT
+- Must be employed by an employer enrolled in E-Verify
+- Employer and student must complete Form I-983 (Training Plan)
+- Must apply before current OPT expires
+
+E-Verify Requirement:
+- Your employer MUST be enrolled in E-Verify
+- This is non-negotiable — no exceptions
+- You can verify employer E-Verify status through the E-Verify portal
+- Self-employment is NOT allowed on STEM OPT
+
+Application Timeline:
+- Apply up to 90 days before your current OPT EAD expires
+- Your OPT is automatically extended for up to 180 days while your STEM extension is pending
+- File Form I-765 with category (c)(3)(C)
+
+Form I-983 Training Plan Requirements:
+- Must describe the STEM training opportunity
+- Must explain how the training relates to your STEM degree
+- Must include learning objectives and a training plan
+- Employer must sign and commit to training objectives
+- Must be updated every 6 months (self-evaluation)
+- Must be updated if you change employers
+- Must be submitted to DSO within 10 days of start
+
+Employment Rules on STEM OPT:
+- Must work at least 20 hours per week
+- Can work for more than one employer (each must be E-Verify enrolled)
+- Must report any change in employer to DSO within 10 days
+- Must report material changes to training plan
+- Self-employment is NOT permitted
+- Volunteering does not count as employment
+
+Unemployment Limits:
+- Maximum 150 days of aggregate unemployment during the entire 36-month OPT + STEM OPT period
+- This includes any unemployment days from the initial 12-month OPT
+- Exceeding 150 days terminates your F-1 status
+
+Reporting Requirements:
+- Self-evaluation to DSO every 6 months
+- Report employer name, address, and EIN to DSO
+- Validate I-20 information annually
+- Report any name or address changes within 10 days
+- Final evaluation upon completion of STEM OPT
+
+Employer Obligations:
+- Must be enrolled in E-Verify
+- Must attest that STEM OPT worker is not replacing a US worker
+- Must provide training and supervision as outlined in I-983
+- Must report termination of student to DSO within 5 days
+- Must allow DHS site visits for compliance verification

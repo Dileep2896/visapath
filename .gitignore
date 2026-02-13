@@ -1,0 +1,25 @@
+# Environment
+.env
+backend/venv/
+
+# ChromaDB persistence (regenerated via ingest.py)
+backend/app/rag/chroma_db/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
