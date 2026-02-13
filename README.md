@@ -509,7 +509,26 @@ visapath/
 │           │   └── f1_general_rules.txt
 │           └── chroma_db/             # ChromaDB persistence (21 embedded chunks)
 │
-└── frontend/                          # (Day 2 - React + Vite + Tailwind)
+└── frontend/
+    ├── index.html                     # Entry HTML
+    ├── vite.config.ts                 # Vite config (React, Tailwind, API proxy)
+    ├── package.json
+    └── src/
+        ├── main.tsx                   # React root mount
+        ├── App.tsx                    # App shell (state, routing, API calls)
+        ├── index.css                  # Tailwind + custom dark theme (navy/teal)
+        ├── types/
+        │   └── index.ts              # TypeScript interfaces for all data models
+        ├── utils/
+        │   └── api.ts                # API client (generateTimeline, chat, docs)
+        └── components/
+            ├── Layout.tsx             # Sidebar navigation shell
+            ├── OnboardingForm.tsx     # 4-step intake form
+            ├── TimelineDashboard.tsx  # Vertical timeline with expandable cards
+            ├── StatusBadge.tsx        # Current visa status + deadline countdown
+            ├── RiskAlerts.tsx         # Color-coded risk alert cards
+            ├── AIChatPanel.tsx        # Chat interface with suggested questions
+            └── DocumentTracker.tsx    # Step-by-step document checklist
 ```
 
 ---
@@ -545,12 +564,14 @@ python app/rag/ingest.py
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### Frontend Setup (coming Day 2)
+### Frontend Setup
 
 ```bash
 cd visapath/frontend
 npm install
 npm run dev
+# Opens on http://localhost:5173 (or next available port)
+# Proxies /api requests to http://localhost:8000
 ```
 
 ---
@@ -584,7 +605,7 @@ az staticwebapp create --name visapath-web --resource-group visapath
 
 ## Build Log
 
-### Day 1 (Feb 13, 2026) - Backend Core + RAG Setup
+### Day 1 - Backend Core + RAG Setup
 
 - [x] Initialized FastAPI project with full directory structure
 - [x] Created `immigration_rules.py` with OPT, STEM OPT, CPT, H-1B, cap-gap rules
@@ -609,20 +630,35 @@ az staticwebapp create --name visapath-web --resource-group visapath
 - ChromaDB runs embedded (no separate server) which simplifies deployment
 - Stateless architecture with no database needed, all computation per-request
 
-### Day 2 (Feb 14) - Frontend Setup + Onboarding Form
+### Day 2 - Frontend Core
+
+- [x] Scaffolded React + Vite + TypeScript project
+- [x] Configured Tailwind CSS with custom dark theme (navy/teal palette)
+- [x] Added Plus Jakarta Sans and DM Sans fonts
+- [x] Built TypeScript interfaces for all data models
+- [x] Built API client with `generateTimeline`, `sendChatMessage`, `getRequiredDocuments`
+- [x] Built `Layout.tsx` with sidebar navigation (Timeline, AI Chat, Documents)
+- [x] Built `OnboardingForm.tsx` with 4-step intake flow (visa, academic, dates, goals)
+- [x] Built `TimelineDashboard.tsx` with vertical timeline, expandable cards, urgency color coding
+- [x] Built `StatusBadge.tsx` with visa status and deadline countdown
+- [x] Built `RiskAlerts.tsx` with severity-based color coding (critical/high/warning/info)
+- [x] Built `AIChatPanel.tsx` with chat bubbles, suggested questions, auto-scroll
+- [x] Built `DocumentTracker.tsx` with step tabs and checkbox tracking
+- [x] Built `App.tsx` wiring all components with state management and API integration
+- [x] Configured Vite proxy for `/api` requests to backend
+- [x] Verified full end-to-end flow (onboarding form to timeline rendering)
+
+### Day 3 - Timeline Dashboard Polish
 - [ ] *Pending*
 
-### Day 3 (Feb 15) - Timeline Dashboard
+### Day 4 - Chat + Documents + Action Items
 - [ ] *Pending*
 
-### Day 4 (Feb 16) - Chat + Documents + Action Items
+### Day 5 - Polish and Animations
 - [ ] *Pending*
 
-### Day 5 (Feb 17) - Polish & Animations
+### Day 6 - Deploy + Demo Video
 - [ ] *Pending*
 
-### Day 6 (Feb 18) - Deploy + Demo Video
-- [ ] *Pending*
-
-### Day 7 (Feb 19) - Submit
+### Day 7 - Submit
 - [ ] *Pending*
