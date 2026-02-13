@@ -1,7 +1,9 @@
-# VisaPath — AI Immigration Timeline Planner
+# VisaPath - AI Immigration Timeline Planner
 
 > **DevDash 2026 Hackathon Submission**
 > An AI-powered web application that helps international students in the US navigate their immigration journey with personalized timelines, risk alerts, and AI-powered Q&A.
+
+---
 
 ## Table of Contents
 
@@ -17,14 +19,14 @@
   - [RAG Pipeline (Retrieval-Augmented Generation)](#rag-pipeline-retrieval-augmented-generation)
   - [AI Chat Service](#ai-chat-service)
 - [Data Layer](#data-layer)
-- [Frontend Architecture](#frontend-architecture)
 - [Project Structure](#project-structure)
 - [Setup & Installation](#setup--installation)
 - [Deployment](#deployment)
 - [Build Log](#build-log)
 
+---
 
-##Problem
+## Problem
 
 Over 1 million international students in the US navigate a confusing maze of visa deadlines, employment authorization windows, and immigration milestones. Information is scattered across USCIS pages, Reddit threads, university DSO offices, and expensive lawyers. **A single missed deadline can end your legal status in the US.** There is no single tool that gives students a clear, personalized view of their immigration journey.
 
@@ -38,8 +40,9 @@ VisaPath generates a **personalized, interactive immigration roadmap** based on 
 - Document preparation trackers
 - AI-powered Q&A grounded in official USCIS documentation
 
+---
 
-##Architecture Overview
+## Architecture Overview
 
 VisaPath follows a **stateless client-server architecture** with a React frontend, Python FastAPI backend, and a RAG-augmented AI chat system.
 
@@ -49,7 +52,7 @@ graph TB
         Browser["Web Browser"]
     end
 
-    subgraph Frontend["Frontend — React + Vite + Tailwind"]
+    subgraph Frontend["Frontend - React + Vite + Tailwind"]
         OF["Onboarding Form"]
         TD["Timeline Dashboard"]
         CP["AI Chat Panel"]
@@ -58,7 +61,7 @@ graph TB
         OF & TD & CP & DT --> API_CLIENT
     end
 
-    subgraph Backend["Backend — Python + FastAPI"]
+    subgraph Backend["Backend - Python + FastAPI"]
         subgraph Routes["API Routes"]
             R1["POST /api/generate-timeline"]
             R2["POST /api/chat"]
@@ -102,8 +105,9 @@ graph TB
     RAG -->|Embedding requests| GEMINI
 ```
 
+---
 
-##System Architecture Diagram
+## System Architecture Diagram
 
 ### Request Flow: Timeline Generation
 
@@ -155,8 +159,9 @@ sequenceDiagram
     FE-->>User: Display answer with citations
 ```
 
+---
 
-##Tech Stack
+## Tech Stack
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
@@ -171,8 +176,9 @@ sequenceDiagram
 | **Frontend Hosting** | Azure Static Web Apps | Free tier |
 | **Backend Hosting** | Azure App Service | Free tier (Azure for Students) |
 
+---
 
-##Backend Architecture
+## Backend Architecture
 
 ### API Endpoints
 
@@ -258,7 +264,6 @@ Returns document checklists for immigration steps.
 
 **Available steps:** `opt_application`, `stem_opt_extension`, `h1b_petition`, `green_card_perm`
 
-
 ### Timeline Generation Engine
 
 **File:** `backend/app/services/timeline_generator.py`
@@ -267,8 +272,8 @@ The timeline generator is a **rule-based calculation engine** that takes user in
 
 **How it works:**
 
-1. **Parse user input** — visa type, graduation date, STEM status, country, career goal
-2. **Branch by visa type** — different logic for F-1, OPT, H-1B
+1. **Parse user input** including visa type, graduation date, STEM status, country, career goal
+2. **Branch by visa type** with different logic for F-1, OPT, H-1B
 3. **Calculate dates using USCIS rules:**
    - OPT window: `graduation - 90 days` to `graduation + 60 days`
    - OPT duration: 12 months from graduation
@@ -281,7 +286,7 @@ The timeline generator is a **rule-based calculation engine** that takes user in
    - `high`: ≤ 30 days away
    - `medium`: ≤ 90 days away
    - `low`: > 90 days away
-5. **Attach action items** — specific to-dos for each deadline
+5. **Attach action items** with specific to-dos for each deadline
 6. **Sort chronologically** and mark past events
 
 **Supported visa pathways:**
@@ -289,7 +294,6 @@ The timeline generator is a **rule-based calculation engine** that takes user in
 - F-1 → H-1B (direct, if CPT maxed out)
 - OPT → STEM OPT → H-1B
 - H-1B → Green Card
-
 
 ### Risk Analysis Engine
 
@@ -312,13 +316,12 @@ The risk analyzer evaluates user input and flags potential immigration issues.
 
 **Severity levels:** `critical` → `high` → `warning` → `info`
 
-
 ### RAG Pipeline (Retrieval-Augmented Generation)
 
 **Files:**
-- `backend/app/services/rag_service.py` — RAG orchestration
-- `backend/app/rag/ingest.py` — Document ingestion script
-- `backend/app/rag/documents/` — Source knowledge base (6 documents)
+- `backend/app/services/rag_service.py` for RAG orchestration
+- `backend/app/rag/ingest.py` for document ingestion
+- `backend/app/rag/documents/` for the source knowledge base (6 documents)
 
 #### How RAG Works in VisaPath
 
@@ -390,7 +393,6 @@ graph LR
 - **Search method:** Cosine similarity
 - **Top-k:** 4 results per query
 
-
 ### AI Chat Service
 
 **File:** `backend/app/services/gemini_service.py`
@@ -406,7 +408,7 @@ You are VisaPath AI, an expert immigration advisor...
 - Answer questions about US immigration processes
 - Provide accurate, actionable advice based on USCIS rules
 - Always cite specific rules, deadlines, or requirements
-- Never provide legal advice — frame as general information
+- Never provide legal advice, frame as general information
 - Always recommend consulting DSO or attorney for complex situations
 
 [User Context]
@@ -425,8 +427,9 @@ Can I work for two employers on STEM OPT?
 - RAG chunks ground the response in official documentation
 - Gemini generates a comprehensive, accurate answer
 
+---
 
-##Data Layer
+## Data Layer
 
 ### Immigration Rules (`immigration_rules.py`)
 
@@ -468,8 +471,9 @@ Green card wait time estimates by country and EB category:
 
 60+ common STEM Designated Degree Program CIP codes including Computer Science (11.0701), Engineering fields (14.xxxx), Mathematics (27.xxxx), Data Science (30.3101), etc.
 
+---
 
-##Project Structure
+## Project Structure
 
 ```
 visapath/
@@ -505,11 +509,12 @@ visapath/
 │           │   └── f1_general_rules.txt
 │           └── chroma_db/             # ChromaDB persistence (21 embedded chunks)
 │
-└── frontend/                          # (Day 2 — React + Vite + Tailwind)
+└── frontend/                          # (Day 2 - React + Vite + Tailwind)
 ```
 
+---
 
-##Setup & Installation
+## Setup & Installation
 
 ### Prerequisites
 - Python 3.11+
@@ -548,10 +553,11 @@ npm install
 npm run dev
 ```
 
+---
 
-##Deployment
+## Deployment
 
-### Azure (using Azure for Students — $100 credits)
+### Azure (using Azure for Students, $100 credits)
 
 | Service | Azure Resource | Tier |
 |---------|---------------|------|
@@ -574,48 +580,49 @@ az webapp up --name visapath-api --resource-group visapath --runtime "PYTHON:3.1
 az staticwebapp create --name visapath-web --resource-group visapath
 ```
 
+---
 
-##Build Log
+## Build Log
 
-### Day 1 (Feb 13, 2026) — Backend Core + RAG Setup
+### Day 1 (Feb 13, 2026) - Backend Core + RAG Setup
 
 - [x] Initialized FastAPI project with full directory structure
 - [x] Created `immigration_rules.py` with OPT, STEM OPT, CPT, H-1B, cap-gap rules
 - [x] Created `stem_cip_codes.py` with 60+ STEM CIP codes
 - [x] Created `country_backlogs.py` with EB-1/EB-2/EB-3 wait times for India, China, ROW
-- [x] Built `timeline_generator.py` — rule-based engine supporting F-1, OPT, H-1B pathways
-- [x] Built `risk_analyzer.py` — flags 8 risk categories with severity scoring
+- [x] Built `timeline_generator.py`, a rule-based engine supporting F-1, OPT, H-1B pathways
+- [x] Built `risk_analyzer.py` that flags 8 risk categories with severity scoring
 - [x] Set up `gemini_service.py` with Gemini 2.5 Flash and immigration advisor system prompt
-- [x] Set up RAG pipeline: LangChain + ChromaDB + gemini-embedding-001
+- [x] Set up RAG pipeline with LangChain + ChromaDB + gemini-embedding-001
 - [x] Compiled 6 immigration knowledge base documents (OPT, STEM OPT, H-1B, CPT, green card, F-1)
 - [x] Ingested 21 text chunks into ChromaDB vector store
-- [x] Built and tested all 3 API endpoints:
-  - `POST /api/generate-timeline` — returns personalized timeline with events, risks, status
-  - `POST /api/chat` — returns RAG-grounded AI responses about immigration
-  - `GET /api/required-documents` — returns document checklists for 4 immigration steps
+- [x] Built and tested all 3 API endpoints
+  - `POST /api/generate-timeline` returns personalized timeline with events, risks, status
+  - `POST /api/chat` returns RAG-grounded AI responses about immigration
+  - `GET /api/required-documents` returns document checklists for 4 immigration steps
 - [x] Azure resource group (`visapath`) created
 - [x] Chose Google Gemini API (free tier) for AI model
 
 **Technical decisions:**
 - Used `gemini-2.5-flash` for chat (2.0-flash had zero quota on free tier)
 - Used `gemini-embedding-001` for RAG embeddings (768-dim vectors)
-- ChromaDB runs embedded (no separate server) — simplifies deployment
-- Stateless architecture — no database needed, all computation per-request
+- ChromaDB runs embedded (no separate server) which simplifies deployment
+- Stateless architecture with no database needed, all computation per-request
 
-### Day 2 (Feb 14) — Frontend Setup + Onboarding Form
+### Day 2 (Feb 14) - Frontend Setup + Onboarding Form
 - [ ] *Pending*
 
-### Day 3 (Feb 15) — Timeline Dashboard
+### Day 3 (Feb 15) - Timeline Dashboard
 - [ ] *Pending*
 
-### Day 4 (Feb 16) — Chat + Documents + Action Items
+### Day 4 (Feb 16) - Chat + Documents + Action Items
 - [ ] *Pending*
 
-### Day 5 (Feb 17) — Polish & Animations
+### Day 5 (Feb 17) - Polish & Animations
 - [ ] *Pending*
 
-### Day 6 (Feb 18) — Deploy + Demo Video
+### Day 6 (Feb 18) - Deploy + Demo Video
 - [ ] *Pending*
 
-### Day 7 (Feb 19) — Submit
+### Day 7 (Feb 19) - Submit
 - [ ] *Pending*
