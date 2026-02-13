@@ -3,8 +3,6 @@
 > **DevDash 2026 Hackathon Submission**
 > An AI-powered web application that helps international students in the US navigate their immigration journey with personalized timelines, risk alerts, and AI-powered Q&A.
 
----
-
 ## Table of Contents
 
 - [Problem](#problem)
@@ -25,9 +23,8 @@
 - [Deployment](#deployment)
 - [Build Log](#build-log)
 
----
 
-## Problem
+##Problem
 
 Over 1 million international students in the US navigate a confusing maze of visa deadlines, employment authorization windows, and immigration milestones. Information is scattered across USCIS pages, Reddit threads, university DSO offices, and expensive lawyers. **A single missed deadline can end your legal status in the US.** There is no single tool that gives students a clear, personalized view of their immigration journey.
 
@@ -41,9 +38,8 @@ VisaPath generates a **personalized, interactive immigration roadmap** based on 
 - Document preparation trackers
 - AI-powered Q&A grounded in official USCIS documentation
 
----
 
-## Architecture Overview
+##Architecture Overview
 
 VisaPath follows a **stateless client-server architecture** with a React frontend, Python FastAPI backend, and a RAG-augmented AI chat system.
 
@@ -106,9 +102,8 @@ graph TB
     RAG -->|Embedding requests| GEMINI
 ```
 
----
 
-## System Architecture Diagram
+##System Architecture Diagram
 
 ### Request Flow: Timeline Generation
 
@@ -160,9 +155,8 @@ sequenceDiagram
     FE-->>User: Display answer with citations
 ```
 
----
 
-## Tech Stack
+##Tech Stack
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
@@ -177,9 +171,8 @@ sequenceDiagram
 | **Frontend Hosting** | Azure Static Web Apps | Free tier |
 | **Backend Hosting** | Azure App Service | Free tier (Azure for Students) |
 
----
 
-## Backend Architecture
+##Backend Architecture
 
 ### API Endpoints
 
@@ -265,7 +258,6 @@ Returns document checklists for immigration steps.
 
 **Available steps:** `opt_application`, `stem_opt_extension`, `h1b_petition`, `green_card_perm`
 
----
 
 ### Timeline Generation Engine
 
@@ -298,7 +290,6 @@ The timeline generator is a **rule-based calculation engine** that takes user in
 - OPT → STEM OPT → H-1B
 - H-1B → Green Card
 
----
 
 ### Risk Analysis Engine
 
@@ -321,7 +312,6 @@ The risk analyzer evaluates user input and flags potential immigration issues.
 
 **Severity levels:** `critical` → `high` → `warning` → `info`
 
----
 
 ### RAG Pipeline (Retrieval-Augmented Generation)
 
@@ -400,7 +390,6 @@ graph LR
 - **Search method:** Cosine similarity
 - **Top-k:** 4 results per query
 
----
 
 ### AI Chat Service
 
@@ -436,9 +425,8 @@ Can I work for two employers on STEM OPT?
 - RAG chunks ground the response in official documentation
 - Gemini generates a comprehensive, accurate answer
 
----
 
-## Data Layer
+##Data Layer
 
 ### Immigration Rules (`immigration_rules.py`)
 
@@ -480,9 +468,8 @@ Green card wait time estimates by country and EB category:
 
 60+ common STEM Designated Degree Program CIP codes including Computer Science (11.0701), Engineering fields (14.xxxx), Mathematics (27.xxxx), Data Science (30.3101), etc.
 
----
 
-## Project Structure
+##Project Structure
 
 ```
 visapath/
@@ -521,9 +508,8 @@ visapath/
 └── frontend/                          # (Day 2 — React + Vite + Tailwind)
 ```
 
----
 
-## Setup & Installation
+##Setup & Installation
 
 ### Prerequisites
 - Python 3.11+
@@ -562,9 +548,8 @@ npm install
 npm run dev
 ```
 
----
 
-## Deployment
+##Deployment
 
 ### Azure (using Azure for Students — $100 credits)
 
@@ -589,9 +574,8 @@ az webapp up --name visapath-api --resource-group visapath --runtime "PYTHON:3.1
 az staticwebapp create --name visapath-web --resource-group visapath
 ```
 
----
 
-## Build Log
+##Build Log
 
 ### Day 1 (Feb 13, 2026) — Backend Core + RAG Setup
 
@@ -609,8 +593,8 @@ az staticwebapp create --name visapath-web --resource-group visapath
   - `POST /api/generate-timeline` — returns personalized timeline with events, risks, status
   - `POST /api/chat` — returns RAG-grounded AI responses about immigration
   - `GET /api/required-documents` — returns document checklists for 4 immigration steps
-- [x] Azure resource group (`visapath`) and OpenAI resource created (quota unavailable on student plan)
-- [x] Pivoted from Azure OpenAI to Google Gemini API (free tier)
+- [x] Azure resource group (`visapath`) created
+- [x] Chose Google Gemini API (free tier) for AI model
 
 **Technical decisions:**
 - Used `gemini-2.5-flash` for chat (2.0-flash had zero quota on free tier)
