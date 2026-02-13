@@ -5,11 +5,11 @@ interface RiskAlertsProps {
   alerts: RiskAlert[];
 }
 
-const severityConfig: Record<string, { icon: typeof AlertTriangle; bg: string; border: string; text: string }> = {
-  critical: { icon: AlertTriangle, bg: 'bg-red-500/10', border: 'border-red-500/30', text: 'text-red-400' },
-  high: { icon: AlertTriangle, bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400' },
-  warning: { icon: AlertCircle, bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400' },
-  info: { icon: Info, bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400' },
+const severityConfig: Record<string, { icon: typeof AlertTriangle; bg: string; border: string; text: string; glow: string }> = {
+  critical: { icon: AlertTriangle, bg: 'bg-red-500/10', border: 'border-red-500/30', text: 'text-red-400', glow: 'glow-red' },
+  high: { icon: AlertTriangle, bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400', glow: 'glow-amber' },
+  warning: { icon: AlertCircle, bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400', glow: '' },
+  info: { icon: Info, bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', glow: '' },
 };
 
 export default function RiskAlerts({ alerts }: RiskAlertsProps) {
@@ -22,7 +22,7 @@ export default function RiskAlerts({ alerts }: RiskAlertsProps) {
         return (
           <div
             key={idx}
-            className={`rounded-xl border p-4 ${config.bg} ${config.border}`}
+            className={`rounded-xl border p-4 transition-all ${config.bg} ${config.border} ${config.glow}`}
           >
             <div className="flex items-start gap-3">
               <Icon size={16} className={`${config.text} mt-0.5 shrink-0`} />

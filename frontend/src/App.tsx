@@ -6,6 +6,7 @@ import OnboardingForm from './components/OnboardingForm';
 import TimelineDashboard from './components/TimelineDashboard';
 import AIChatPanel from './components/AIChatPanel';
 import DocumentTracker from './components/DocumentTracker';
+import { TimelineSkeleton } from './components/Skeleton';
 
 export default function App() {
   const [view, setView] = useState<AppView>('onboarding');
@@ -15,12 +16,13 @@ export default function App() {
 
   async function handleOnboardingSubmit(data: UserInput) {
     setLoading(true);
+    setUserInput(data);
+    setView('timeline');
     try {
       const result = await generateTimeline(data);
-      setUserInput(data);
       setTimelineData(result);
-      setView('timeline');
     } catch {
+      setView('onboarding');
       alert('Failed to generate timeline. Make sure the backend is running.');
     } finally {
       setLoading(false);
@@ -43,6 +45,9 @@ export default function App() {
     >
       {view === 'onboarding' && (
         <OnboardingForm onSubmit={handleOnboardingSubmit} loading={loading} />
+      )}
+      {view === 'timeline' && !timelineData && (
+        <TimelineSkeleton />
       )}
       {view === 'timeline' && timelineData && (
         <TimelineDashboard data={timelineData} />

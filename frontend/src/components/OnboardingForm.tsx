@@ -35,6 +35,8 @@ const TOTAL_STEPS = 4;
 
 export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProps) {
   const [step, setStep] = useState(1);
+  const [slideDir, setSlideDir] = useState<'right' | 'left'>('right');
+  const [animKey, setAnimKey] = useState(0);
   const [data, setData] = useState<UserInput>({
     visa_type: 'F-1',
     degree_level: "Master's",
@@ -79,13 +81,26 @@ export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProp
 
   function handleNext() {
     if (!validateStep()) return;
-    if (step < TOTAL_STEPS) setStep(step + 1);
-    else onSubmit(data);
+    if (step < TOTAL_STEPS) {
+      setSlideDir('right');
+      setAnimKey(k => k + 1);
+      setStep(step + 1);
+    } else {
+      onSubmit(data);
+    }
+  }
+
+  function handleBack() {
+    setSlideDir('left');
+    setAnimKey(k => k + 1);
+    setStep(step - 1);
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-lg">
+    <div className="min-h-screen flex items-center justify-center p-6 relative">
+      {/* Background gradient accent */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-teal-400/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="w-full max-w-lg relative z-10">
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 mb-4">
             <span className="w-10 h-10 rounded-xl bg-teal-400 flex items-center justify-center text-navy-950 font-extrabold text-lg">
@@ -116,7 +131,8 @@ export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProp
           </span>
         </div>
 
-        <div className="bg-navy-900 rounded-2xl border border-navy-700 p-8">
+        <div className="bg-navy-900 rounded-2xl border border-navy-700 p-8 overflow-hidden">
+          <div key={animKey} className={slideDir === 'right' ? 'animate-slide-in-right' : 'animate-slide-in-left'}>
           {/* Step 1: Visa & Country */}
           {step === 1 && (
             <div className="space-y-6">
@@ -307,11 +323,12 @@ export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProp
             </div>
           )}
 
+          </div>
           {/* Navigation */}
           <div className="flex items-center justify-between mt-8 pt-6 border-t border-navy-700">
             {step > 1 ? (
               <button
-                onClick={() => setStep(step - 1)}
+                onClick={handleBack}
                 className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
                 <ChevronLeft size={16} />

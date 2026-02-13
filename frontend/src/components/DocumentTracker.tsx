@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FileText, CheckCircle, Circle, ExternalLink } from 'lucide-react';
 import { getRequiredDocuments } from '../utils/api';
 import type { DocumentItem } from '../types';
+import { DocumentSkeleton } from './Skeleton';
 
 const STEPS = [
   { key: 'opt_application', label: 'OPT Application' },
@@ -61,7 +62,7 @@ export default function DocumentTracker() {
 
       <div className="bg-navy-900 rounded-xl border border-navy-700">
         {loading ? (
-          <div className="p-8 text-center text-slate-500">Loading...</div>
+          <DocumentSkeleton />
         ) : (
           <div className="divide-y divide-navy-700">
             {documents.map((doc) => (
