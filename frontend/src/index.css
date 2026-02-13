@@ -147,3 +147,59 @@ h1, h2, h3, h4, h5, h6 {
 .glow-amber {
   box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
 }
+
+/* Chat markdown styles */
+.prose-chat p {
+  margin-bottom: 0.5rem;
+}
+
+.prose-chat p:last-child {
+  margin-bottom: 0;
+}
+
+.prose-chat strong {
+  color: white;
+  font-weight: 600;
+}
+
+.prose-chat ul, .prose-chat ol {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+
+.prose-chat li {
+  margin-bottom: 0.25rem;
+}
+
+.prose-chat ul li {
+  list-style-type: disc;
+}
+
+.prose-chat ol li {
+  list-style-type: decimal;
+}
+
+.prose-chat code {
+  background: rgba(0, 212, 170, 0.1);
+  color: var(--color-teal-400);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+.prose-chat h1, .prose-chat h2, .prose-chat h3 {
+  color: white;
+  font-weight: 600;
+  margin: 0.75rem 0 0.25rem;
+  font-family: var(--font-heading);
+}
+
+.prose-chat h3 { font-size: 0.9rem; }
+.prose-chat h2 { font-size: 1rem; }
+
+.prose-chat blockquote {
+  border-left: 2px solid var(--color-teal-400);
+  padding-left: 0.75rem;
+  margin: 0.5rem 0;
+  color: #94a3b8;
+}

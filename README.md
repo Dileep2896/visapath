@@ -522,13 +522,16 @@ visapath/
         ├── utils/
         │   └── api.ts                # API client (generateTimeline, chat, docs)
         └── components/
-            ├── Layout.tsx             # Sidebar navigation shell
-            ├── OnboardingForm.tsx     # 4-step intake form
-            ├── TimelineDashboard.tsx  # Vertical timeline with expandable cards
+            ├── Layout.tsx             # Sidebar navigation shell (responsive)
+            ├── OnboardingForm.tsx     # 4-step intake form with slide transitions
+            ├── TimelineDashboard.tsx  # Vertical timeline with staggered animations
             ├── StatusBadge.tsx        # Current visa status + deadline countdown
-            ├── RiskAlerts.tsx         # Color-coded risk alert cards
-            ├── AIChatPanel.tsx        # Chat interface with suggested questions
-            └── DocumentTracker.tsx    # Step-by-step document checklist
+            ├── RiskAlerts.tsx         # Color-coded risk alert cards with glow
+            ├── ActionItems.tsx        # Prioritized to-do checklist from timeline
+            ├── AIChatPanel.tsx        # Chat with markdown rendering + citations
+            ├── DocumentTracker.tsx    # Document checklist with progress bar
+            ├── Skeleton.tsx           # Shimmer loading skeletons
+            └── EmptyState.tsx         # Reusable empty/error state
 ```
 
 ---
@@ -648,13 +651,33 @@ az staticwebapp create --name visapath-web --resource-group visapath
 - [x] Configured Vite proxy for `/api` requests to backend
 - [x] Verified full end-to-end flow (onboarding form to timeline rendering)
 
-### Day 3 - Timeline Dashboard Polish
-- [ ] *Pending*
+### Day 3 - Animations and Polish
+
+- [x] Added staggered fade-in-up animation for timeline events (80ms delay per card)
+- [x] Added pulsing glow animation on current timeline marker
+- [x] Added smooth slide transitions between onboarding form steps
+- [x] Added CSS grid expand/collapse animation for timeline cards
+- [x] Built shimmer skeleton loading screens for timeline and document views
+- [x] Added mobile hamburger menu with slide-out sidebar and dark overlay
+- [x] Added subtle grid background pattern and gradient blur accents
+- [x] Added glow effects on critical/warning status badges and risk alerts
+- [x] Hover scale effect on timeline cards
 
 ### Day 4 - Chat + Documents + Action Items
-- [ ] *Pending*
 
-### Day 5 - Polish and Animations
+- [x] Built `ActionItems.tsx` with prioritized to-do checklist extracted from timeline events
+- [x] Added progress bar with percentage tracking to Action Items and Document Tracker
+- [x] Added urgency badges (Urgent, Soon, Upcoming, Later) on action items
+- [x] Added markdown rendering for AI chat responses using `react-markdown`
+- [x] Styled chat markdown (bold, lists, code, blockquotes, headings)
+- [x] Added source citation indicator with book icon in chat
+- [x] Added error states for failed API calls (Document Tracker)
+- [x] Added empty states for missing data across all views
+- [x] Built `EmptyState.tsx` reusable component
+- [x] Tested 4 visa scenarios (F-1 STEM/India, F-1 Non-STEM/China, OPT/Brazil, H-1B/India)
+- [x] Verified country-specific logic, STEM vs non-STEM, past event detection all work correctly
+
+### Day 5 - Final Polish
 - [ ] *Pending*
 
 ### Day 6 - Deploy + Demo Video

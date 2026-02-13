@@ -63,4 +63,4 @@ export interface UserInput {
   country: string;
 }
 
-export type AppView = 'onboarding' | 'timeline' | 'chat' | 'documents';
+export type AppView = 'onboarding' | 'timeline' | 'actions' | 'chat' | 'documents';

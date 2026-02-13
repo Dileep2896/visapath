@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FileText, CheckCircle, Circle, ExternalLink } from 'lucide-react';
+import { FileText, CheckCircle, Circle, ExternalLink, AlertCircle } from 'lucide-react';
 import { getRequiredDocuments } from '../utils/api';
 import type { DocumentItem } from '../types';
 import { DocumentSkeleton } from './Skeleton';
@@ -16,15 +16,20 @@ export default function DocumentTracker() {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     setLoading(true);
+    setError(false);
     getRequiredDocuments(activeStep)
       .then(res => {
         setDocuments(res.documents || []);
         setChecked(new Set());
       })
-      .catch(() => setDocuments([]))
+      .catch(() => {
+        setDocuments([]);
+        setError(true);
+      })
       .finally(() => setLoading(false));
   }, [activeStep]);
 
@@ -36,6 +41,8 @@ export default function DocumentTracker() {
       return next;
     });
   }
+
+  const progress = documents.length > 0 ? (checked.size / documents.length) * 100 : 0;
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
@@ -60,15 +67,50 @@ export default function DocumentTracker() {
         ))}
       </div>
 
+      {/* Progress bar */}
+      {documents.length > 0 && (
+        <div className="bg-navy-900 rounded-xl border border-navy-700 p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-slate-300">{checked.size} of {documents.length} documents ready</span>
+            <span className="text-sm font-medium text-teal-400">{Math.round(progress)}%</span>
+          </div>
+          <div className="h-2 bg-navy-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-teal-400 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="bg-navy-900 rounded-xl border border-navy-700">
         {loading ? (
           <DocumentSkeleton />
+        ) : error ? (
+          <div className="p-8 text-center">
+            <AlertCircle size={32} className="text-red-400 mx-auto mb-3" />
+            <p className="text-slate-300 font-medium">Failed to load documents</p>
+            <p className="text-sm text-slate-500 mt-1">Make sure the backend server is running.</p>
+            <button
+              onClick={() => setActiveStep(activeStep)}
+              className="mt-3 text-sm text-teal-400 hover:text-teal-300 transition-colors cursor-pointer"
+            >
+              Try again
+            </button>
+          </div>
+        ) : documents.length === 0 ? (
+          <div className="p-8 text-center">
+            <FileText size={32} className="text-slate-600 mx-auto mb-3" />
+            <p className="text-slate-300 font-medium">No documents found</p>
+            <p className="text-sm text-slate-500 mt-1">Select a different step above.</p>
+          </div>
         ) : (
           <div className="divide-y divide-navy-700">
-            {documents.map((doc) => (
+            {documents.map((doc, idx) => (
               <div
                 key={doc.name}
-                className="flex items-start gap-4 p-4 hover:bg-navy-800/50 transition-colors"
+                className="flex items-start gap-4 p-4 hover:bg-navy-800/50 transition-colors animate-fade-in-up"
+                style={{ animationDelay: `${idx * 50}ms` }}
               >
                 <button
                   onClick={() => toggleCheck(doc.name)}
@@ -98,12 +140,6 @@ export default function DocumentTracker() {
           </div>
         )}
       </div>
-
-      {documents.length > 0 && (
-        <div className="text-sm text-slate-500">
-          {checked.size}/{documents.length} documents ready
-        </div>
-      )}
     </div>
   );
 }

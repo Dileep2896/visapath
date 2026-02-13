@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Clock, MessageCircle, FileText, Map, Menu, X } from 'lucide-react';
+import { Clock, MessageCircle, FileText, Map, Menu, X, ListChecks } from 'lucide-react';
 import type { AppView } from '../types';
 
 interface LayoutProps {
@@ -11,6 +11,7 @@ interface LayoutProps {
 
 const navItems: { view: AppView; icon: typeof Clock; label: string }[] = [
   { view: 'timeline', icon: Map, label: 'Timeline' },
+  { view: 'actions', icon: ListChecks, label: 'Action Items' },
   { view: 'chat', icon: MessageCircle, label: 'AI Chat' },
   { view: 'documents', icon: FileText, label: 'Documents' },
 ];

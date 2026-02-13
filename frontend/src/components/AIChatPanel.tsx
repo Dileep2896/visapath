@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, Bot, User } from 'lucide-react';
+import { Send, Loader2, Bot, User, BookOpen } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import type { ChatMessage, UserInput } from '../types';
 import { sendChatMessage } from '../utils/api';
 
@@ -63,7 +64,7 @@ export default function AIChatPanel({ userContext }: AIChatPanelProps) {
 
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {messages.map((msg, idx) => (
-          <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+          <div key={idx} className={`flex gap-3 animate-fade-in-up ${msg.role === 'user' ? 'justify-end' : ''}`}>
             {msg.role === 'assistant' && (
               <div className="w-8 h-8 rounded-lg bg-teal-400/10 flex items-center justify-center shrink-0">
                 <Bot size={16} className="text-teal-400" />
@@ -74,9 +75,18 @@ export default function AIChatPanel({ userContext }: AIChatPanelProps) {
                 ? 'bg-teal-400 text-navy-950'
                 : 'bg-navy-800 text-slate-200'
             }`}>
-              <p className="whitespace-pre-wrap">{msg.content}</p>
+              {msg.role === 'assistant' ? (
+                <div className="prose-chat">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="whitespace-pre-wrap">{msg.content}</p>
+              )}
               {msg.has_sources && (
-                <p className="text-xs mt-2 opacity-60">Based on official USCIS documentation</p>
+                <div className="flex items-center gap-1.5 text-xs mt-3 pt-2 border-t border-white/10 opacity-70">
+                  <BookOpen size={10} />
+                  <span>Based on official USCIS documentation</span>
+                </div>
               )}
             </div>
             {msg.role === 'user' && (
@@ -87,12 +97,13 @@ export default function AIChatPanel({ userContext }: AIChatPanelProps) {
           </div>
         ))}
         {loading && (
-          <div className="flex gap-3">
+          <div className="flex gap-3 animate-fade-in-up">
             <div className="w-8 h-8 rounded-lg bg-teal-400/10 flex items-center justify-center shrink-0">
               <Bot size={16} className="text-teal-400" />
             </div>
-            <div className="bg-navy-800 rounded-xl px-4 py-3">
+            <div className="bg-navy-800 rounded-xl px-4 py-3 flex items-center gap-2">
               <Loader2 size={16} className="animate-spin text-teal-400" />
+              <span className="text-xs text-slate-500">Thinking...</span>
             </div>
           </div>
         )}
