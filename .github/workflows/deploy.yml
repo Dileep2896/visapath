@@ -27,9 +27,14 @@ jobs:
       - name: Copy frontend build to backend
         run: cp -r frontend/dist/ backend/static/
 
+      - name: Create deployment package
+        run: cd backend && zip -r ../deploy.zip . -x "venv/*" "__pycache__/*" "*.pyc" ".azure/*"
+
       - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: visapath-app
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: backend
+        run: |
+          curl -s -X POST \
+            -u "${{ secrets.AZURE_DEPLOY_USER }}:${{ secrets.AZURE_DEPLOY_PASS }}" \
+            --data-binary @deploy.zip \
+            -H "Content-Type: application/zip" \
+            "https://visapath-app.scm.azurewebsites.net/api/zipdeploy?isAsync=true"
+          echo "Deployment triggered successfully"
