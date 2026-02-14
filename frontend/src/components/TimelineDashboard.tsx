@@ -65,7 +65,7 @@ export default function TimelineDashboard({ data }: TimelineDashboardProps) {
             return (
               <div
                 key={event.id}
-                className="relative pl-12 pb-6 animate-fade-in-up"
+                className="relative pl-12 pb-3 animate-fade-in-up"
                 style={{ animationDelay: `${300 + idx * 80}ms` }}
               >
                 {/* Dot on timeline */}

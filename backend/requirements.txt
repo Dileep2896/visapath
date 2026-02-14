@@ -116,3 +116,6 @@ xxhash==3.6.0
 zipp==3.23.0
 psycopg2-binary==2.9.10
 zstandard==0.25.0
+gunicorn==23.0.0
+pysqlite3-binary
+langchain-text-splitters

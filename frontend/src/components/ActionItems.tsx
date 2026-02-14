@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle, Circle, Calendar, AlertTriangle } from 'lucide-react';
+import { CheckCircle, Circle, Calendar } from 'lucide-react';
 import type { TimelineEvent } from '../types';
 
 interface ActionItemsProps {

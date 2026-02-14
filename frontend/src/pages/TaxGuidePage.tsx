@@ -5,8 +5,9 @@ import TaxGuidePageComponent from '../components/TaxGuidePage';
 export default function TaxGuidePageRoute() {
   const { userInput, cachedTaxGuide, setCachedTaxGuide } = useAuth();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleGenerated = useCallback(
-    (data: Record<string, unknown>) => {
+    (data: any) => {
       setCachedTaxGuide(data as Record<string, unknown>);
     },
     [setCachedTaxGuide]
