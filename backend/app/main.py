@@ -19,12 +19,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.routes import timeline, chat, documents, auth
+from app.routes import timeline, chat, documents, auth, tax_guide
 
 app.include_router(timeline.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(tax_guide.router, prefix="/api")
 
 
 @app.on_event("startup")

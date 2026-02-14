@@ -53,6 +53,12 @@ def ingest_documents():
     if not os.path.exists(DOCS_DIR):
         return 0
 
+    vectorstore = get_vectorstore()
+    # Clear existing documents to avoid duplicates
+    existing = vectorstore.get()
+    if existing and existing['ids']:
+        vectorstore.delete(ids=existing['ids'])
+
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=200,

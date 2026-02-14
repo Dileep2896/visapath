@@ -48,7 +48,7 @@ def generate_timeline(user_input: dict) -> list[dict]:
         events.extend(_f1_timeline(
             today, graduation, program_start, is_stem, degree_level,
             cpt_months, career_goal, country, opt_status, unemployment_days,
-            h1b_attempts, has_job_offer, field_label
+            h1b_attempts, has_job_offer, field_label, program_extended
         ))
     elif visa_type == "OPT":
         events.extend(_opt_timeline(
@@ -68,10 +68,22 @@ def generate_timeline(user_input: dict) -> list[dict]:
 
     if graduation:
         urgency = _deadline_urgency(today, graduation)
+        if program_extended:
+            grad_title = f"New Expected Graduation (Extended){field_label}"
+            grad_desc = (
+                "Your updated program completion date after the extension. "
+                "All OPT deadlines and work authorization dates are calculated from THIS date. "
+                "You will still receive the full 12-month OPT period"
+                + (" (plus 24-month STEM extension)" if is_stem else "")
+                + " starting from this graduation date."
+            )
+        else:
+            grad_title = f"Expected Graduation{field_label}"
+            grad_desc = "Your program completion date. Key deadlines are calculated from this date."
         events.append(_event(
-            "graduation", f"Expected Graduation{field_label}", graduation,
+            "graduation", grad_title, graduation,
             "milestone", urgency,
-            "Your program completion date. Key deadlines are calculated from this date."
+            grad_desc,
         ))
 
     # Job offer awareness milestones
@@ -110,18 +122,22 @@ def _program_extension_events(today, graduation, original_graduation, field_labe
     """Generate events related to program extension."""
     events = []
 
+    grad_note = f" New graduation date: {graduation.isoformat()}." if graduation else ""
     events.append(_event(
         "program_extension_notice",
         f"Program Extended{field_label} — Update Required",
         today,
         "deadline", "high",
         "Your program has been extended. You need an updated I-20 reflecting "
-        "the new program end date. Your SEVIS record must also be updated by your DSO.",
+        "the new program end date. Your SEVIS record must also be updated by your DSO. "
+        "Important: Your OPT eligibility and duration are NOT reduced by the extension — "
+        "you will still receive the full 12-month OPT (plus STEM extension if eligible) "
+        f"calculated from your new graduation date.{grad_note}",
         action_items=[
             "Request updated I-20 from DSO with new program end date",
             "Confirm SEVIS record has been updated",
             "Keep copies of both original and updated I-20",
-            "Recalculate OPT eligibility window based on new graduation date",
+            "Note: All OPT deadlines will be based on your NEW graduation date",
         ]
     ))
 
@@ -132,7 +148,8 @@ def _program_extension_events(today, graduation, original_graduation, field_labe
             original_graduation,
             "milestone", "none",
             f"Your original program end date before extension. "
-            f"New graduation date: {graduation.isoformat()}.",
+            f"This date is no longer used for OPT or deadline calculations. "
+            f"All deadlines now use your new graduation date: {graduation.isoformat()}.",
         ))
 
     return events
@@ -140,12 +157,14 @@ def _program_extension_events(today, graduation, original_graduation, field_labe
 
 def _f1_timeline(today, graduation, program_start, is_stem, degree_level,
                  cpt_months, career_goal, country, opt_status, unemployment_days,
-                 h1b_attempts, has_job_offer, field_label):
+                 h1b_attempts, has_job_offer, field_label, program_extended=False):
     """Generate F-1 specific timeline events."""
     events = []
 
     if not graduation:
         return events
+
+    ext_note = " (based on your extended graduation date)" if program_extended else ""
 
     # CPT warning if 12+ months full-time used
     if cpt_months >= 12:
@@ -181,7 +200,7 @@ def _f1_timeline(today, graduation, program_start, is_stem, degree_level,
         events.append(_event(
             "opt_apply_window_open", f"OPT Application Window Opens{field_label}", opt_window_open,
             "deadline", _deadline_urgency(today, opt_window_open),
-            "You can start applying for post-completion OPT. Apply as early as possible — "
+            f"You can start applying for post-completion OPT{ext_note}. Apply as early as possible — "
             f"processing takes {OPT_RULES['ead_processing_months_min']}-{OPT_RULES['ead_processing_months_max']} months.",
             action_items=[
                 "Request OPT recommendation from DSO",
@@ -207,8 +226,9 @@ def _f1_timeline(today, graduation, program_start, is_stem, degree_level,
     events.append(_event(
         "opt_start", "OPT Period Begins (Estimated)", opt_start,
         "milestone", "none",
-        "Your 12-month OPT period starts. You have 90 days to find employment. "
-        "Track your unemployment days carefully.",
+        f"Your full 12-month OPT period starts{ext_note}. You have 90 days to find employment. "
+        "Track your unemployment days carefully."
+        + (" Your OPT duration is not reduced by the program extension." if program_extended else ""),
         action_items=[
             "Begin job search if not already employed",
             f"Track unemployment days (max {OPT_RULES['unemployment_limit_days']} days)",
@@ -248,7 +268,7 @@ def _f1_timeline(today, graduation, program_start, is_stem, degree_level,
     events.append(_event(
         "opt_expiration", "OPT Expires", opt_end,
         "deadline", "critical",
-        "Your 12-month OPT period ends.",
+        f"Your 12-month OPT period ends{ext_note}.",
         action_items=["Apply for STEM OPT extension (if eligible)" if is_stem else "Secure H-1B sponsorship or other status"]
     ))
 
@@ -440,6 +460,11 @@ def _add_job_search_events(events, today, graduation, opt_status):
 def _h1b_lottery_events(today, graduation, degree_level, h1b_attempts=0):
     """Generate H-1B lottery related events."""
     events = []
+
+    # Don't show H-1B events if graduation is more than 6 months away
+    if graduation and graduation > today + timedelta(days=180):
+        return events
+
     current_year = today.year
 
     # H-1B attempt history messaging
@@ -467,10 +492,20 @@ def _h1b_lottery_events(today, graduation, degree_level, h1b_attempts=0):
 
         year_label = f"FY{year + 1}"
 
+        # Note if registration happens before graduation
+        pre_grad_note = ""
+        if graduation and reg_open < graduation:
+            pre_grad_note = (
+                f" Note: Registration occurs before your graduation ({graduation.isoformat()}). "
+                "Your employer CAN register you now — if selected, you would graduate, start OPT, "
+                "and transition to H-1B on Oct 1 via cap-gap extension."
+            )
+
         description = (
             f"H-1B electronic registration period for {year_label}. Your employer must register you. "
             + ("US Master's cap gives you two chances in the lottery." if degree_level in ("Master's", "PhD") else "Regular cap: 65,000 slots.")
             + attempt_note
+            + pre_grad_note
         )
 
         action_items = [

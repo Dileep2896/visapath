@@ -2,7 +2,6 @@ import { Clock, AlertTriangle, CheckCircle, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import type { TimelineResponse } from '../types';
 import StatusBadge from './StatusBadge';
-import RiskAlerts from './RiskAlerts';
 
 interface TimelineDashboardProps {
   data: TimelineResponse;
@@ -35,7 +34,7 @@ const typeIcons: Record<string, typeof Clock> = {
 export default function TimelineDashboard({ data }: TimelineDashboardProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const { timeline_events, risk_alerts, current_status } = data;
+  const { timeline_events, current_status } = data;
 
   const currentIdx = timeline_events.findIndex(e => !e.is_past);
 
@@ -50,19 +49,13 @@ export default function TimelineDashboard({ data }: TimelineDashboardProps) {
         />
       </div>
 
-      {risk_alerts.length > 0 && (
-        <div className="animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-          <RiskAlerts alerts={risk_alerts} />
-        </div>
-      )}
-
       <div className="space-y-0">
         <h2 className="text-lg font-semibold text-white font-heading mb-4 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
           Your Timeline
         </h2>
         <div className="relative">
           {/* Glowing vertical line */}
-          <div className="absolute left-[19px] top-0 bottom-0 w-0.5 timeline-line" />
+          <div className="absolute left-[17px] top-0 bottom-0 w-0.5 timeline-line" />
 
           {timeline_events.map((event, idx) => {
             const Icon = typeIcons[event.type] || Clock;

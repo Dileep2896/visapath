@@ -61,7 +61,7 @@ export async function login(email: string, password: string): Promise<AuthUser> 
   return data;
 }
 
-export async function getMe(): Promise<{ id: number; email: string; profile: UserInput | null } | null> {
+export async function getMe(): Promise<{ id: number; email: string; profile: UserInput | null; cached_timeline: TimelineResponse | null; cached_tax_guide: Record<string, unknown> | null } | null> {
   const token = getToken();
   if (!token) return null;
   try {
@@ -77,6 +77,20 @@ export async function saveProfile(profile: UserInput): Promise<void> {
   await authFetch(`${API_BASE}/auth/profile`, {
     method: 'PUT',
     body: JSON.stringify({ profile }),
+  });
+}
+
+export async function saveCachedTimeline(timelineResponse: TimelineResponse): Promise<void> {
+  await authFetch(`${API_BASE}/auth/cached-timeline`, {
+    method: 'PUT',
+    body: JSON.stringify({ timeline_response: timelineResponse }),
+  });
+}
+
+export async function saveCachedTaxGuide(taxGuide: Record<string, unknown>): Promise<void> {
+  await authFetch(`${API_BASE}/auth/cached-tax-guide`, {
+    method: 'PUT',
+    body: JSON.stringify({ tax_guide: taxGuide }),
   });
 }
 
@@ -99,6 +113,17 @@ export async function getMyTimelines(): Promise<SavedTimeline[]> {
   return data.timelines;
 }
 
+// --- Rate limit pre-check ---
+export async function checkRateLimit(): Promise<{ allowed: boolean; remaining: number; limit: number }> {
+  try {
+    const res = await fetch(`${API_BASE}/rate-limit-status`);
+    if (!res.ok) return { allowed: true, remaining: 999, limit: 999 }; // fail-open
+    return res.json();
+  } catch {
+    return { allowed: true, remaining: 999, limit: 999 }; // fail-open on network error
+  }
+}
+
 // --- Existing API ---
 export async function generateTimeline(input: UserInput): Promise<TimelineResponse> {
   const res = await fetch(`${API_BASE}/generate-timeline`, {
@@ -106,7 +131,12 @@ export async function generateTimeline(input: UserInput): Promise<TimelineRespon
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
-  if (!res.ok) throw new Error('Failed to generate timeline');
+  if (!res.ok) {
+    if (res.status === 429) {
+      throw new Error('Rate limit reached — free tier allows 20 AI requests/day. Please wait and try again.');
+    }
+    throw new Error('Failed to generate timeline');
+  }
   return res.json();
 }
 
@@ -120,6 +150,37 @@ export async function sendChatMessage(
     body: JSON.stringify({ message, user_context: userContext }),
   });
   if (!res.ok) throw new Error('Failed to send message');
+  return res.json();
+}
+
+export async function getTaxGuide(userContext: UserInput) {
+  const body = {
+    visa_type: userContext.visa_type,
+    country: userContext.country,
+    has_income: userContext.currently_employed || false,
+    income_types: userContext.currently_employed ? ['wages'] : [],
+    years_in_us: 1,
+  };
+
+  // Estimate years in US from program_start
+  if (userContext.program_start) {
+    const start = new Date(userContext.program_start);
+    const now = new Date();
+    body.years_in_us = Math.max(1, Math.ceil((now.getTime() - start.getTime()) / (365.25 * 24 * 60 * 60 * 1000)));
+  }
+
+  const res = await fetch(`${API_BASE}/tax-guide`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    if (res.status === 429) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.detail || 'Rate limit reached \u2014 free tier allows 20 AI requests/day. Please wait and try again.');
+    }
+    throw new Error('Failed to get tax guide. Please try again.');
+  }
   return res.json();
 }
 

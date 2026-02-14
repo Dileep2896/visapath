@@ -34,17 +34,20 @@ Over 1 million international students in the US navigate a confusing maze of vis
 
 VisaPath generates a **personalized, interactive immigration roadmap** based on each student's specific situation. Students input their visa type, program details, and career goals, and receive:
 
-- An interactive timeline with every critical deadline
+- An AI-generated interactive timeline with every critical deadline
 - Color-coded risk alerts for potential issues
 - Actionable to-do checklists with deadlines
 - Document preparation trackers
-- AI-powered Q&A grounded in official USCIS documentation
+- AI-powered Q&A grounded in official USCIS documentation (RAG)
+- Personalized tax filing guide for international students
+- What-If Simulator to explore alternative immigration scenarios
+- Full authentication with profile persistence across sessions
 
 ---
 
 ## Architecture Overview
 
-VisaPath follows a **stateless client-server architecture** with a React frontend, Python FastAPI backend, and a RAG-augmented AI chat system.
+VisaPath follows a **client-server architecture** with a React frontend (React Router for navigation), Python FastAPI backend with JWT auth, a SQLite/PostgreSQL database for user persistence, and a RAG-augmented AI system for chat, timeline generation, and tax guidance.
 
 ```mermaid
 graph TB
@@ -52,31 +55,44 @@ graph TB
         Browser["Web Browser"]
     end
 
-    subgraph Frontend["Frontend - React + Vite + Tailwind"]
+    subgraph Frontend["Frontend - React + Vite + Tailwind + React Router"]
+        AUTH["Auth Screen<br/><i>Login / Register</i>"]
         OF["Onboarding Form"]
         TD["Timeline Dashboard"]
+        WIF["What-If Simulator"]
         CP["AI Chat Panel"]
         DT["Document Tracker"]
+        TXG["Tax Guide"]
         API_CLIENT["API Client"]
-        OF & TD & CP & DT --> API_CLIENT
+        AUTH & OF & TD & WIF & CP & DT & TXG --> API_CLIENT
     end
 
     subgraph Backend["Backend - Python + FastAPI"]
         subgraph Routes["API Routes"]
+            R_AUTH["Auth Routes<br/><i>register, login, me, profile</i>"]
             R1["POST /api/generate-timeline"]
             R2["POST /api/chat"]
             R3["GET /api/required-documents"]
+            R4["POST /api/tax-guide"]
+            R5["GET /api/rate-limit-status"]
+        end
+
+        subgraph Middleware["Middleware"]
+            RL["Rate Limiter<br/><i>Per-IP + AI daily limit</i>"]
+            JWT["JWT Auth<br/><i>Token validation</i>"]
         end
 
         subgraph Services["Services"]
-            TG["Timeline Generator<br/><i>Rule-based date calculation</i>"]
+            TG["AI Timeline Generator<br/><i>Gemini-powered with fallback</i>"]
             RA["Risk Analyzer<br/><i>Flags CPT, backlog, deadline risks</i>"]
             CS["Chat Service"]
             RAG["RAG Service<br/><i>Embed → Search → Retrieve</i>"]
             GS["Gemini Service<br/><i>Prompt assembly + API call</i>"]
+            AS["Auth Service<br/><i>bcrypt hashing + JWT</i>"]
         end
 
         subgraph Data["Data Layer"]
+            DB["SQLite / PostgreSQL<br/><i>Users, profiles, cached results</i>"]
             IR["immigration_rules.py"]
             SC["stem_cip_codes.py"]
             CB["country_backlogs.py"]
@@ -84,23 +100,27 @@ graph TB
         end
 
         subgraph VectorDB["Vector Store"]
-            CHROMA["ChromaDB<br/><i>21 embedded chunks</i>"]
+            CHROMA["ChromaDB<br/><i>21+ embedded chunks</i>"]
         end
 
+        R_AUTH --> AS --> DB
         R1 --> TG & RA
         R2 --> CS
         R3 --> DR
+        R4 --> GS
         TG & RA --> IR & SC & CB
+        TG --> GS
         CS --> RAG --> CHROMA
         CS --> GS
     end
 
     subgraph External["External APIs"]
-        GEMINI["Google Gemini API<br/><b>gemini-2.5-flash</b> (chat)<br/><b>gemini-embedding-001</b> (vectors)"]
+        GEMINI["Google Gemini API<br/><b>gemini-2.5-flash</b> / <b>gemini-2.0-flash</b><br/><b>gemini-embedding-001</b> (vectors)"]
     end
 
     Browser -->|HTTPS| Frontend
     API_CLIENT -->|REST API / JSON| Routes
+    Routes --> Middleware
     GS --> GEMINI
     RAG -->|Embedding requests| GEMINI
 ```
@@ -166,10 +186,13 @@ sequenceDiagram
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
 | **Frontend** | React 18 + TypeScript | UI components and state management |
+| **Routing** | React Router v6 | URL-based navigation with route guards |
 | **Build Tool** | Vite | Fast dev server and production builds |
 | **Styling** | Tailwind CSS | Utility-first CSS framework |
 | **Backend** | Python 3.13 + FastAPI | REST API server |
-| **AI Model** | Google Gemini 2.5 Flash | Chat responses, contextual Q&A |
+| **Auth** | JWT + bcrypt | Stateless authentication with hashed passwords |
+| **Database** | SQLite (dev) / PostgreSQL (prod) | User accounts, profiles, cached AI results |
+| **AI Model** | Google Gemini 2.5 Flash / 2.0 Flash | Timeline generation, tax guide, contextual Q&A |
 | **Embeddings** | gemini-embedding-001 | Vector embeddings for RAG |
 | **Vector DB** | ChromaDB | Local vector storage and similarity search |
 | **RAG Framework** | LangChain | Document processing, text splitting, embedding orchestration |
@@ -257,6 +280,62 @@ AI-powered Q&A with RAG context retrieval.
   "has_sources": true
 }
 ```
+
+#### `POST /api/tax-guide`
+
+Generates a personalized tax filing guide for international students using AI + RAG.
+
+**Request Body:**
+```json
+{
+  "visa_type": "F-1",
+  "country": "India",
+  "has_income": true,
+  "income_types": ["wages"],
+  "years_in_us": 2
+}
+```
+
+**Response:**
+```json
+{
+  "filing_deadline": "April 15, 2026",
+  "residency_status": "Nonresident Alien",
+  "required_forms": ["Form 8843", "Form 1040-NR"],
+  "treaty_benefits": { "country": "India", "benefit": "...", "form": "Form 8233" },
+  "fica_exempt": true,
+  "guidance": "### Filing Requirements\n...",
+  "disclaimer": "This is general guidance, not legal or tax advice."
+}
+```
+
+#### `GET /api/rate-limit-status`
+
+Returns current AI usage so the frontend can pre-check before triggering expensive AI calls.
+
+**Response:**
+```json
+{
+  "used": 5,
+  "limit": 1500,
+  "remaining": 1495,
+  "allowed": true,
+  "retry_after": 0
+}
+```
+
+#### Auth Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/register` | POST | Create account (email + password) |
+| `/api/auth/login` | POST | Login, returns JWT token |
+| `/api/auth/me` | GET | Get current user profile + cached data |
+| `/api/auth/profile` | PUT | Save/update user profile |
+| `/api/auth/cached-timeline` | PUT | Cache AI-generated timeline |
+| `/api/auth/cached-tax-guide` | PUT | Cache AI-generated tax guide |
+| `/api/auth/save-timeline` | POST | Save timeline to history |
+| `/api/auth/my-timelines` | GET | Get saved timeline history |
 
 #### `GET /api/required-documents?step=opt_application`
 
@@ -477,7 +556,7 @@ Green card wait time estimates by country and EB category:
 
 ```
 visapath/
-├── .env                                # Environment variables (GEMINI_API_KEY)
+├── .env                                # Environment variables (GEMINI_API_KEY, JWT_SECRET)
 ├── README.md                           # This file
 │
 ├── backend/
@@ -485,14 +564,22 @@ visapath/
 │   ├── venv/                           # Python virtual environment
 │   └── app/
 │       ├── main.py                     # FastAPI entry point, CORS, router setup
+│       ├── database.py                 # Dual-mode DB (SQLite/PostgreSQL), schema, CRUD
+│       ├── dependencies.py             # JWT token validation dependency
+│       ├── ai_rate_limit.py            # In-memory AI request tracker (daily limit)
+│       ├── rate_limit.py               # Per-IP rate limiting for auth endpoints
 │       ├── routes/
+│       │   ├── auth.py                 # Auth + profile + caching endpoints
 │       │   ├── timeline.py             # POST /api/generate-timeline
 │       │   ├── chat.py                 # POST /api/chat
+│       │   ├── tax_guide.py            # POST /api/tax-guide
 │       │   └── documents.py            # GET /api/required-documents
 │       ├── services/
+│       │   ├── auth_service.py         # Registration, login, password hashing, JWT
+│       │   ├── ai_timeline_generator.py # AI-powered timeline with Gemini
 │       │   ├── timeline_generator.py   # Rule-based timeline calculation engine
 │       │   ├── risk_analyzer.py        # Risk detection and severity scoring
-│       │   ├── gemini_service.py       # Google Gemini API wrapper
+│       │   ├── gemini_service.py       # Google Gemini API wrapper (2.5-flash / 2.0-flash)
 │       │   └── rag_service.py          # RAG pipeline (embed, store, retrieve)
 │       ├── data/
 │       │   ├── immigration_rules.py    # USCIS rules as structured Python dicts
@@ -500,38 +587,63 @@ visapath/
 │       │   └── country_backlogs.py     # Green card wait times by country
 │       └── rag/
 │           ├── ingest.py               # One-time script to embed docs into ChromaDB
-│           ├── documents/              # 6 immigration knowledge base text files
+│           ├── documents/              # 8 immigration knowledge base text files
 │           │   ├── opt_rules.txt
 │           │   ├── stem_opt_extension.txt
 │           │   ├── h1b_visa.txt
+│           │   ├── h1b_wage_level_selection.txt
+│           │   ├── international_student_tax_filing.txt
 │           │   ├── cpt_rules.txt
 │           │   ├── green_card_process.txt
 │           │   └── f1_general_rules.txt
-│           └── chroma_db/             # ChromaDB persistence (21 embedded chunks)
+│           └── chroma_db/             # ChromaDB persistence (embedded chunks)
 │
 └── frontend/
     ├── index.html                     # Entry HTML
     ├── vite.config.ts                 # Vite config (React, Tailwind, API proxy)
     ├── package.json
     └── src/
-        ├── main.tsx                   # React root mount
-        ├── App.tsx                    # App shell (state, routing, API calls)
+        ├── main.tsx                   # React root with BrowserRouter + AuthProvider
+        ├── App.tsx                    # Route tree (~40 lines)
         ├── index.css                  # Tailwind + custom dark theme (navy/teal)
         ├── types/
         │   └── index.ts              # TypeScript interfaces for all data models
         ├── utils/
-        │   └── api.ts                # API client (generateTimeline, chat, docs)
+        │   └── api.ts                # API client (auth, timeline, chat, tax, rate limit)
+        ├── contexts/
+        │   └── AuthContext.tsx        # Global auth + data state (user, timeline, tax cache)
+        ├── pages/                     # Page wrappers connecting routes to components
+        │   ├── LoginPage.tsx
+        │   ├── OnboardingPage.tsx
+        │   ├── TimelinePage.tsx
+        │   ├── AlertsPage.tsx
+        │   ├── ActionsPage.tsx
+        │   ├── ChatPage.tsx
+        │   ├── DocumentsPage.tsx
+        │   ├── TaxGuidePage.tsx
+        │   └── ProfilePage.tsx
         └── components/
-            ├── Layout.tsx             # Sidebar navigation shell (responsive)
+            ├── routes/
+            │   ├── RequireAuth.tsx     # Auth guard (redirects to /login)
+            │   ├── RequireOnboarded.tsx # Onboarding guard (redirects to /onboarding)
+            │   └── AppLayout.tsx       # Layout wrapper with Outlet
+            ├── Layout.tsx             # Sidebar navigation with NavLink
+            ├── AuthScreen.tsx         # Login/register form
             ├── OnboardingForm.tsx     # 4-step intake form with slide transitions
             ├── TimelineDashboard.tsx  # Vertical timeline with staggered animations
             ├── StatusBadge.tsx        # Current visa status + deadline countdown
             ├── RiskAlerts.tsx         # Color-coded risk alert cards with glow
+            ├── AlertsPage.tsx         # Risk alerts view
             ├── ActionItems.tsx        # Prioritized to-do checklist from timeline
             ├── AIChatPanel.tsx        # Chat with markdown rendering + citations
             ├── DocumentTracker.tsx    # Document checklist with progress bar
+            ├── TaxGuidePage.tsx       # AI-generated tax filing guide
+            ├── ProfilePage.tsx        # User profile view with edit
+            ├── WhatIfPanel.tsx        # What-If scenario simulator
+            ├── PageLoader.tsx         # Animated multi-step loading screen
             ├── Skeleton.tsx           # Shimmer loading skeletons
-            └── EmptyState.tsx         # Reusable empty/error state
+            ├── EmptyState.tsx         # Reusable empty/error state
+            └── Toast.tsx              # Toast notification system
 ```
 
 ---
@@ -691,8 +803,29 @@ az staticwebapp create --name visapath-web --resource-group visapath
 - [x] Replaced inline SVG with lucide-react for empty states
 - [x] Clean unused imports across components
 
-### Day 6 - Deploy + Demo Video
-- [ ] *Pending*
+### Day 6 - Auth, Routing, Tax Guide, Caching, Rate Limiting
 
-### Day 7 - Submit
+- [x] Added JWT authentication with login/register, bcrypt password hashing
+- [x] Added SQLite database (PostgreSQL in production) for users, profiles, cached results
+- [x] Replaced `useState<AppView>` navigation with React Router v6 URL-based routing
+- [x] Built route guards: `RequireAuth` (redirects to `/login`), `RequireOnboarded` (redirects to `/onboarding`)
+- [x] Extracted all shared state into `AuthContext` provider
+- [x] Created 9 page wrappers connecting routes to existing components
+- [x] Converted `Layout.tsx` sidebar from buttons to `NavLink` with active state highlighting
+- [x] Added AI-powered timeline generation using Gemini (with model fallback chain: 2.5-flash to 2.0-flash)
+- [x] Added What-If Simulator for exploring alternative immigration scenarios
+- [x] Added Tax Guide page with AI-generated personalized tax filing guidance (one generation per profile)
+- [x] Added RAG context for tax guide queries (international student tax filing documents)
+- [x] Built rate limiting system: per-IP limits on auth routes + daily AI request tracking
+- [x] Added frontend rate limit pre-check before expensive AI calls (fast-fail)
+- [x] Added sticky rate limit exhaustion marker (5-minute cooldown after Gemini 429)
+- [x] Cached AI results to database: timelines and tax guides load instantly on revisit
+- [x] Added profile persistence: onboarding draft auto-saves, resumes on reload
+- [x] Built `PageLoader` component with animated multi-step loading states
+- [x] Redesigned `EmptyState` with animated ring icons and gradient CTAs
+- [x] Added toast notification system for save/error feedback
+- [x] Differentiated loading states: full skeleton for AI generation vs simple loader for DB fetch
+- [x] Fixed timeline dot centering on vertical line
+
+### Day 7 - Deploy + Demo Video
 - [ ] *Pending*

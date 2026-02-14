@@ -84,4 +84,3 @@ export interface SavedTimeline {
   created_at: string;
 }
 
-export type AppView = 'onboarding' | 'timeline' | 'actions' | 'chat' | 'documents' | 'profile';

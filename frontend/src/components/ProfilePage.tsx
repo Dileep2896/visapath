@@ -59,7 +59,7 @@ export default function ProfilePage({ profile, onEdit, onStartOnboarding }: Prof
   if (!profile) {
     return (
       <EmptyState
-        icon={<User size={32} className="text-slate-600 mx-auto" />}
+        icon={<User size={22} className="text-slate-500" />}
         title="No profile yet"
         description="Complete the onboarding form to set up your immigration profile."
         action={{ label: 'Start Onboarding', onClick: onStartOnboarding }}

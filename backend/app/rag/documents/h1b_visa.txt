@@ -49,6 +49,13 @@ Changing Employers (H-1B Transfer/Portability):
 - No need to wait for approval
 - The transfer is NOT subject to the annual cap
 
+FY 2027 Wage-Level Weighted Selection (Effective February 27, 2026):
+- Starting FY 2027, USCIS replaces the random lottery with a wage-level weighted selection system
+- Registrations are assigned 1-4 entries based on DOL prevailing wage level (Level I = 1 entry, Level IV = 4 entries)
+- Higher wage levels have significantly better selection odds; Level I selection probability drops ~48%, Level IV increases ~107%
+- Employers must provide SOC code, OEWS wage level, and area of employment during registration
+- See the detailed document "H-1B Wage-Level Weighted Selection" for full details on the new system
+
 Important Notes:
 - H-1B is employer-specific — you can only work for the petitioning employer
 - If you lose your job, you have a 60-day grace period to find a new employer or change status

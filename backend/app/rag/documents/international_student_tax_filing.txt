@@ -1,0 +1,101 @@
+International Student Tax Filing Guide (F-1 and J-1 Visa Holders)
+
+Filing Requirement:
+All F-1 and J-1 visa holders who were present in the United States during the tax year must file a federal tax return or information statement by April 15 of the following year. This applies regardless of whether you earned any income.
+
+Form 8843 — Statement for Exempt Individuals:
+- Required for ALL nonresident aliens present in the US, even if you had zero income
+- This form establishes your exempt individual status under the Substantial Presence Test
+- F-1 students and J-1 exchange visitors must file Form 8843 every year they are in the US
+- If Form 8843 is the only form you need to file, mail it to the IRS in Austin, TX
+- Spouses and dependents in F-2 or J-2 status must also file their own Form 8843
+
+Form 1040-NR — Nonresident Alien Income Tax Return:
+- Required if you are a nonresident alien who earned US-source income (wages, scholarships above tuition, stipends, etc.)
+- Replaces the standard Form 1040 used by US citizens and residents
+- Do NOT use Form 1040 or 1040-EZ if you are a nonresident alien
+- You cannot file jointly with a spouse as a nonresident alien (unless making the Section 6013(g) election)
+- Due date: April 15 (or June 15 if you had no wages subject to US withholding)
+
+Nonresident Alien Status — The 5-Year Rule:
+- F-1 students are considered nonresident aliens for federal tax purposes for their first 5 calendar years in the US
+- J-1 students and researchers follow different rules (2 calendar years for students, varies for researchers)
+- After 5 calendar years on F-1, you may become a resident alien under the Substantial Presence Test
+- Resident aliens file Form 1040 (not 1040-NR) and are taxed on worldwide income
+- The count is based on calendar years of presence, not total days (e.g., arriving December 31 counts as one year)
+
+FICA Tax Exemption:
+- F-1 students are EXEMPT from Social Security tax (6.2%) and Medicare tax (1.45%) for their first 5 calendar years in the US
+- This exemption applies to on-campus employment, CPT, and OPT employment
+- J-1 students are also exempt for their first 2 calendar years
+- If your employer incorrectly withholds FICA taxes, you can request a refund using Form 843 and Form 8316
+- After the exemption period ends, you must pay FICA taxes like any other worker
+
+Tax Treaties:
+Over 70 countries have income tax treaties with the United States that can reduce or eliminate tax on certain types of income for students and trainees. Common treaty benefits include:
+
+- India: Up to $5,000 exemption on wages and personal services income under Article 21(d). Students and business apprentices can exclude $5,000 of income per year.
+- China: Up to $5,000 exemption under Article 20(c) for students and business apprentices. Covers wages, salaries, and personal service income.
+- South Korea: Up to $2,000 exemption under Article 21(1) for students on income received for maintenance, education, or training.
+- Germany: Full exemption on income received from abroad for maintenance, education, or training under Article 20.
+- Japan: Students are exempt from tax on payments received from abroad for maintenance, education, or training.
+- Canada: No specific student exemption article, but scholarship and fellowship grants may be covered under Article XV.
+- United Kingdom: Students exempt from tax on payments from abroad for maintenance or education under Article 20.
+- France: Students exempt from tax on payments from abroad under Article 21.
+- Brazil: No comprehensive tax treaty with the US (limited treaty covers only certain taxes).
+- Mexico: Limited treaty provisions; no specific student exemption article.
+
+To claim treaty benefits:
+- File Form W-8BEN with your employer to claim treaty-based withholding exemption on wages
+- File Form 8233 with your employer for exemption from withholding on personal services income
+- Report treaty benefits on Form 1040-NR, Schedule OI (Other Information)
+
+Taxable Income for International Students:
+- US-source wages (campus jobs, CPT, OPT employment)
+- Scholarships and fellowships that exceed qualified tuition and required fees/books
+- Stipends and living allowances
+- US bank interest income (for nonresident aliens from countries without a treaty exempting interest)
+- Tips and self-employment income
+- Prizes and awards
+
+Non-Taxable Income:
+- Scholarships and fellowships used to pay for tuition and required fees and books (for degree candidates)
+- Foreign-source income (for nonresident aliens — income earned outside the US)
+- Gifts from foreign persons (up to $100,000 per year before reporting requirement, but not taxable)
+
+Key Tax Forms Summary:
+- W-2: Wage and tax statement from your employer (received by January 31)
+- 1042-S: Foreign Person's US Source Income Subject to Withholding (for scholarship/fellowship income)
+- W-8BEN: Certificate of Foreign Status for tax treaty benefits
+- Form 8233: Exemption from withholding on personal services income (treaty-based)
+- W-7: Application for IRS Individual Taxpayer Identification Number (ITIN) if you don't have an SSN
+- Form 8843: Statement for Exempt Individuals (required for ALL nonresident aliens)
+- Form 1040-NR: Nonresident Alien Income Tax Return
+
+State Taxes:
+- Most states have their own income tax that must be filed separately
+- States with no income tax: Alaska, Florida, Nevada, New Hampshire (limited), South Dakota, Tennessee, Texas, Washington, Wyoming
+- Each state has its own filing requirements and forms
+- Some states do not follow federal tax treaty provisions
+- Check your state's Department of Revenue website for specific requirements
+
+Free or Low-Cost Filing Tools:
+- Sprintax: Designed specifically for nonresident alien tax filing. Handles Form 1040-NR, Form 8843, and state returns. Many universities provide free access codes.
+- Glacier Tax Prep: Another tool designed for international students. Also handles treaty benefits and Form 8843. Often provided through university international student offices.
+- IRS Free File: Available for some filers, but does not support Form 1040-NR. Not suitable for most nonresident aliens.
+- VITA (Volunteer Income Tax Assistance): Free tax help, but volunteers may not be trained on nonresident alien returns. Check with your university.
+
+Important Deadlines:
+- January 31: Employers must provide W-2 forms
+- March 15: Form 1042-S must be provided for scholarship/fellowship income
+- April 15: Federal tax return due date (Form 1040-NR and/or Form 8843)
+- June 15: Extended due date if you had no US wages subject to withholding
+- October 15: Extended due date if you filed Form 4868 for an extension
+
+Common Mistakes to Avoid:
+1. Filing Form 1040 instead of Form 1040-NR (using the wrong form)
+2. Forgetting to file Form 8843 (required even with no income)
+3. Not claiming tax treaty benefits you're entitled to
+4. Using TurboTax or H&R Block software (these don't support nonresident alien returns)
+5. Not requesting a FICA refund when your employer incorrectly withholds Social Security/Medicare taxes
+6. Filing as a resident alien before the 5-year exemption period ends

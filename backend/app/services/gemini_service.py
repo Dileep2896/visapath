@@ -1,10 +1,18 @@
 """Google Gemini API wrapper for chat and RAG responses."""
 
 import json
+import logging
 import os
 import google.generativeai as genai
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+logger = logging.getLogger(__name__)
+
+# Model fallback chain: try the best model first, fall back on rate limit.
+# gemini-2.5-flash  →  20 RPD free tier  (best quality)
+# gemini-2.0-flash  → 1500 RPD free tier  (fallback)
+MODEL_CHAIN = ["gemini-2.5-flash", "gemini-2.0-flash"]
 
 SYSTEM_INSTRUCTION = """You are VisaPath AI, an expert immigration advisor for international students in the United States.
 
@@ -23,10 +31,16 @@ Important rules:
 
 When given context about the user's situation (visa type, degree, country, etc.), personalize your response to their specific circumstances."""
 
-model = genai.GenerativeModel(
-    model_name="gemini-2.5-flash",
-    system_instruction=SYSTEM_INSTRUCTION,
-)
+
+def _is_rate_limit(exc: Exception) -> bool:
+    return "429" in str(exc) or "ResourceExhausted" in type(exc).__name__
+
+
+# Build chat models for each model in the chain
+_chat_models = [
+    genai.GenerativeModel(model_name=m, system_instruction=SYSTEM_INSTRUCTION)
+    for m in MODEL_CHAIN
+]
 
 
 async def chat_with_context(
@@ -53,8 +67,19 @@ async def chat_with_context(
 
     full_prompt = "\n\n".join(prompt_parts)
 
-    response = await model.generate_content_async(full_prompt)
-    return response.text
+    # Try each model in the chain
+    for model in _chat_models:
+        try:
+            response = await model.generate_content_async(full_prompt)
+            return response.text
+        except Exception as e:
+            if _is_rate_limit(e) and model is not _chat_models[-1]:
+                logger.warning("Chat rate-limited on %s, falling back", model.model_name)
+                continue
+            raise
+
+    # Should not reach here, but just in case
+    raise RuntimeError("All models exhausted")
 
 
 async def generate_structured_json_async(
@@ -63,16 +88,27 @@ async def generate_structured_json_async(
 ) -> dict:
     """Send a prompt to Gemini and return parsed JSON.
 
+    Tries each model in MODEL_CHAIN. Falls back on rate-limit errors.
     Uses response_mime_type="application/json" and low temperature
     for deterministic, structured output.
     """
-    structured_model = genai.GenerativeModel(
-        model_name="gemini-2.5-flash",
-        system_instruction=system_instruction,
-        generation_config=genai.GenerationConfig(
-            response_mime_type="application/json",
-            temperature=0.1,
-        ),
-    )
-    response = await structured_model.generate_content_async(prompt)
-    return json.loads(response.text)
+    for model_name in MODEL_CHAIN:
+        try:
+            structured_model = genai.GenerativeModel(
+                model_name=model_name,
+                system_instruction=system_instruction,
+                generation_config=genai.GenerationConfig(
+                    response_mime_type="application/json",
+                    temperature=0.1,
+                ),
+            )
+            response = await structured_model.generate_content_async(prompt)
+            logger.info("Structured JSON generated using %s", model_name)
+            return json.loads(response.text)
+        except Exception as e:
+            if _is_rate_limit(e) and model_name != MODEL_CHAIN[-1]:
+                logger.warning("Rate-limited on %s, falling back to next model", model_name)
+                continue
+            raise
+
+    raise RuntimeError("All models exhausted")

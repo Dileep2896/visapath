@@ -1,0 +1,56 @@
+H-1B Wage-Level Weighted Selection (FY 2027 and Beyond)
+
+Overview:
+Starting with fiscal year 2027 (registration period March 2026), USCIS will use a weighted selection system based on prevailing wage levels instead of a random lottery. This final rule was published by the Department of Homeland Security on December 29, 2025, and takes effect on February 27, 2026.
+
+How It Works — Weighted Entries:
+The new system assigns a number of "entries" to each H-1B registration based on the Department of Labor's Occupational Employment and Wage Statistics (OEWS) prevailing wage tier:
+- Level I (entry-level / 17th percentile): 1 entry
+- Level II (qualified / 34th percentile): 2 entries
+- Level III (experienced / 50th percentile): 3 entries
+- Level IV (fully competent / 67th percentile): 4 entries
+
+More entries = higher probability of selection. This is NOT a guaranteed selection — it is still a random draw, but registrations with higher wage levels have proportionally more chances.
+
+Selection Probability Impact:
+Based on DHS analysis of recent registration data:
+- Level I registrations: Selection probability reduced by approximately 48% compared to the old random lottery
+- Level II registrations: Selection probability reduced by approximately 9%
+- Level III registrations: Selection probability increased by approximately 40%
+- Level IV registrations: Selection probability increased by approximately 107% (more than doubled)
+- US Master's cap registrants still get two chances (first in the advanced degree pool, then in the regular cap)
+
+Employer Registration Requirements:
+During the electronic registration period, employers must now provide additional information:
+- Standard Occupational Classification (SOC) code for the position
+- OEWS prevailing wage level (I through IV) for the position
+- Area of intended employment (metropolitan or non-metropolitan statistical area)
+- The offered wage must meet or exceed the prevailing wage for the stated SOC code and area
+
+Integrity Measures:
+- USCIS can deny or revoke an H-1B petition if the actual position details are inconsistent with the wage level claimed during registration
+- If an employer submits multiple registrations for the same beneficiary at different wage levels, USCIS will use the lowest wage level to determine the number of entries
+- Employers must certify that registration information is accurate and complete
+- False or fraudulent registration information may result in denial, revocation, and potential debarment
+
+Important Considerations for International Students:
+- Entry-level positions (Level I wages) will be significantly harder to win in the lottery
+- Students should negotiate for higher-level positions and wages to improve selection chances
+- The wage level is determined by the DOL prevailing wage system based on job duties, requirements, and geographic area — not solely by the salary offered
+- Students with advanced degrees (Master's or PhD) retain their dual-lottery advantage
+- Cap-exempt employers (universities, research institutions, nonprofit research organizations) are NOT affected — they remain exempt from the cap and lottery
+
+$100,000 Additional Filing Fee:
+Since September 21, 2025, new H-1B petitions (not extensions or amendments) are subject to an additional $100,000 filing fee for employers with 25 or more full-time employees where more than 50% of employees are in H-1B or L-1 status. This fee is separate from the wage-level selection system.
+
+Timeline:
+- February 27, 2026: Final rule takes effect
+- March 2026: First H-1B registration period under new wage-level weighted system (for FY 2027)
+- October 1, 2026: First H-1B start date under new system (FY 2027)
+
+Strategy Tips:
+1. Aim for positions classified at Level III or IV wages for the best selection odds
+2. Work with your employer and immigration attorney to ensure the SOC code and wage level accurately reflect the position
+3. If you have multiple job offers, consider the wage level implications for H-1B selection
+4. Continue to maintain valid F-1/OPT status as a backup while pursuing H-1B
+5. Consider cap-exempt employers (universities, research orgs) to bypass the lottery entirely

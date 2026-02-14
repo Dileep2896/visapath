@@ -127,6 +127,12 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 8px;
 }
 
+/* Indeterminate progress bar slide */
+@keyframes indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
 /* Force dark autofill background on inputs */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -197,6 +203,16 @@ input:-webkit-autofill:active {
     linear-gradient(rgba(30, 39, 85, 0.18) 1px, transparent 1px),
     linear-gradient(90deg, rgba(30, 39, 85, 0.18) 1px, transparent 1px);
   background-size: 40px 40px;
+}
+
+/* Timeline loader spin */
+.timeline-loader-spin {
+  animation: gentle-spin 4s linear infinite;
+}
+
+@keyframes gentle-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Gradient glow effect */

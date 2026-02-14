@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     profile TEXT,
+    cached_timeline TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -83,6 +84,7 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     profile TEXT,
+    cached_timeline TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 """
@@ -121,6 +123,24 @@ def init_db():
                 cur.execute("ALTER TABLE users ADD COLUMN profile TEXT")
                 conn.commit()
 
+            # Migration: add cached_timeline column if missing
+            cur.execute(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'users' AND column_name = 'cached_timeline'"
+            )
+            if not cur.fetchone():
+                cur.execute("ALTER TABLE users ADD COLUMN cached_timeline TEXT")
+                conn.commit()
+
+            # Migration: add cached_tax_guide column if missing
+            cur.execute(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'users' AND column_name = 'cached_tax_guide'"
+            )
+            if not cur.fetchone():
+                cur.execute("ALTER TABLE users ADD COLUMN cached_tax_guide TEXT")
+                conn.commit()
+
             cur.execute(
                 f"SELECT id FROM users WHERE email = {PH}", ("demo@visapath.com",)
             )
@@ -145,6 +165,24 @@ def init_db():
             ]
             if "profile" not in cols:
                 conn.execute("ALTER TABLE users ADD COLUMN profile TEXT")
+                conn.commit()
+
+            # Migration: add cached_timeline column if missing
+            cols = [
+                row[1]
+                for row in conn.execute("PRAGMA table_info(users)").fetchall()
+            ]
+            if "cached_timeline" not in cols:
+                conn.execute("ALTER TABLE users ADD COLUMN cached_timeline TEXT")
+                conn.commit()
+
+            # Migration: add cached_tax_guide column if missing
+            cols = [
+                row[1]
+                for row in conn.execute("PRAGMA table_info(users)").fetchall()
+            ]
+            if "cached_tax_guide" not in cols:
+                conn.execute("ALTER TABLE users ADD COLUMN cached_tax_guide TEXT")
                 conn.commit()
 
             existing = conn.execute(
@@ -234,7 +272,7 @@ def get_user_by_id(user_id: int) -> dict | None:
         if USE_PG:
             cur = _cursor(conn)
             cur.execute(
-                f"SELECT id, email, profile, created_at FROM users WHERE id = {PH}",
+                f"SELECT id, email, profile, cached_timeline, cached_tax_guide, created_at FROM users WHERE id = {PH}",
                 (user_id,),
             )
             row = cur.fetchone()
@@ -248,10 +286,18 @@ def get_user_by_id(user_id: int) -> dict | None:
                 result["profile"] = json.loads(result["profile"])
             else:
                 result["profile"] = None
+            if result.get("cached_timeline"):
+                result["cached_timeline"] = json.loads(result["cached_timeline"])
+            else:
+                result["cached_timeline"] = None
+            if result.get("cached_tax_guide"):
+                result["cached_tax_guide"] = json.loads(result["cached_tax_guide"])
+            else:
+                result["cached_tax_guide"] = None
             return result
         else:
             row = conn.execute(
-                f"SELECT id, email, profile, created_at FROM users WHERE id = {PH}",
+                f"SELECT id, email, profile, cached_timeline, cached_tax_guide, created_at FROM users WHERE id = {PH}",
                 (user_id,),
             ).fetchone()
             if row is None:
@@ -261,6 +307,14 @@ def get_user_by_id(user_id: int) -> dict | None:
                 result["profile"] = json.loads(result["profile"])
             else:
                 result["profile"] = None
+            if result.get("cached_timeline"):
+                result["cached_timeline"] = json.loads(result["cached_timeline"])
+            else:
+                result["cached_timeline"] = None
+            if result.get("cached_tax_guide"):
+                result["cached_tax_guide"] = json.loads(result["cached_tax_guide"])
+            else:
+                result["cached_tax_guide"] = None
             return result
     finally:
         conn.close()
@@ -283,6 +337,52 @@ def save_user_profile(user_id: int, profile_dict: dict) -> None:
             conn.execute(
                 f"UPDATE users SET profile = {PH} WHERE id = {PH}",
                 (profile_json, user_id),
+            )
+            conn.commit()
+    finally:
+        conn.close()
+
+
+def save_cached_timeline(user_id: int, timeline_response: dict) -> None:
+    """Save/update a user's cached timeline (auto-saved after generation)."""
+    conn = get_db()
+    try:
+        timeline_json = json.dumps(timeline_response)
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(
+                f"UPDATE users SET cached_timeline = {PH} WHERE id = {PH}",
+                (timeline_json, user_id),
+            )
+            conn.commit()
+            cur.close()
+        else:
+            conn.execute(
+                f"UPDATE users SET cached_timeline = {PH} WHERE id = {PH}",
+                (timeline_json, user_id),
+            )
+            conn.commit()
+    finally:
+        conn.close()
+
+
+def save_cached_tax_guide(user_id: int, tax_guide: dict) -> None:
+    """Save/update a user's cached tax guide (auto-saved after generation)."""
+    conn = get_db()
+    try:
+        tax_json = json.dumps(tax_guide)
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(
+                f"UPDATE users SET cached_tax_guide = {PH} WHERE id = {PH}",
+                (tax_json, user_id),
+            )
+            conn.commit()
+            cur.close()
+        else:
+            conn.execute(
+                f"UPDATE users SET cached_tax_guide = {PH} WHERE id = {PH}",
+                (tax_json, user_id),
             )
             conn.commit()
     finally:

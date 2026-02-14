@@ -1,32 +1,28 @@
 import { useState } from 'react';
-import { Clock, MessageCircle, FileText, Map, Menu, X, ListChecks, LogOut, User } from 'lucide-react';
-import type { AppView } from '../types';
+import { NavLink } from 'react-router-dom';
+import { Clock, MessageCircle, FileText, Map, Menu, X, ListChecks, LogOut, User, AlertTriangle, Receipt } from 'lucide-react';
 import Logo from './Logo';
 
 interface LayoutProps {
-  currentView: AppView;
-  onNavigate: (view: AppView) => void;
   showNav: boolean;
   children: React.ReactNode;
   userEmail?: string;
   onLogout?: () => void;
+  onReset?: () => void;
 }
 
-const navItems: { view: AppView; icon: typeof Clock; label: string }[] = [
-  { view: 'timeline', icon: Map, label: 'Timeline' },
-  { view: 'actions', icon: ListChecks, label: 'Action Items' },
-  { view: 'chat', icon: MessageCircle, label: 'AI Chat' },
-  { view: 'documents', icon: FileText, label: 'Documents' },
-  { view: 'profile', icon: User, label: 'Profile' },
+const navItems: { path: string; icon: typeof Clock; label: string }[] = [
+  { path: '/timeline', icon: Map, label: 'Timeline' },
+  { path: '/alerts', icon: AlertTriangle, label: 'Alerts' },
+  { path: '/actions', icon: ListChecks, label: 'Action Items' },
+  { path: '/chat', icon: MessageCircle, label: 'AI Chat' },
+  { path: '/documents', icon: FileText, label: 'Documents' },
+  { path: '/tax-guide', icon: Receipt, label: 'Tax Guide' },
+  { path: '/profile', icon: User, label: 'Profile' },
 ];
 
-export default function Layout({ currentView, onNavigate, showNav, children, userEmail, onLogout }: LayoutProps) {
+export default function Layout({ showNav, children, userEmail, onLogout, onReset }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  function navigate(view: AppView) {
-    onNavigate(view);
-    setMobileOpen(false);
-  }
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -64,19 +60,22 @@ export default function Layout({ currentView, onNavigate, showNav, children, use
               <Logo size="compact" />
             </div>
             <nav className="flex-1 p-4 space-y-1">
-              {navItems.map(({ view, icon: Icon, label }) => (
-                <button
-                  key={view}
-                  onClick={() => navigate(view)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                    currentView === view
-                      ? 'bg-teal-400/10 text-teal-400'
-                      : 'text-slate-400 hover:bg-navy-800 hover:text-slate-200'
-                  }`}
+              {navItems.map(({ path, icon: Icon, label }) => (
+                <NavLink
+                  key={path}
+                  to={path}
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    `w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                      isActive
+                        ? 'bg-teal-400/10 text-teal-400'
+                        : 'text-slate-400 hover:bg-navy-800 hover:text-slate-200'
+                    }`
+                  }
                 >
                   <Icon size={18} />
                   {label}
-                </button>
+                </NavLink>
               ))}
             </nav>
             <div className="p-4 border-t border-navy-700 space-y-3">
@@ -95,12 +94,14 @@ export default function Layout({ currentView, onNavigate, showNav, children, use
                   Sign Out
                 </button>
               )}
-              <button
-                onClick={() => navigate('onboarding')}
-                className="w-full text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
-              >
-                Reset & Start Over
-              </button>
+              {onReset && (
+                <button
+                  onClick={onReset}
+                  className="w-full text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                >
+                  Reset & Start Over
+                </button>
+              )}
             </div>
           </aside>
         </>

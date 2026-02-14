@@ -1,10 +1,26 @@
 """Timeline generation API route."""
 
-from fastapi import APIRouter
+import logging
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.services.ai_timeline_generator import generate_ai_timeline
+from app.ai_rate_limit import (
+    check_ai_rate_limit,
+    record_ai_request,
+    get_ai_rate_status,
+    mark_exhausted,
+    AIRateLimitExceeded,
+)
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+@router.get("/rate-limit-status")
+async def rate_limit_status():
+    """Return current AI usage so the frontend can pre-check."""
+    return get_ai_rate_status()
 
 
 class TimelineRequest(BaseModel):
@@ -29,9 +45,28 @@ class TimelineRequest(BaseModel):
 
 @router.post("/generate-timeline")
 async def create_timeline(request: TimelineRequest):
+    # Fast-fail if we already know we're rate-limited
+    try:
+        check_ai_rate_limit()
+    except AIRateLimitExceeded as e:
+        raise HTTPException(status_code=429, detail=str(e))
+
     user_input = request.model_dump()
 
-    result = await generate_ai_timeline(user_input)
+    try:
+        result = await generate_ai_timeline(user_input)
+        record_ai_request()
+    except Exception as e:
+        logger.exception("Timeline generation failed")
+        detail = str(e)
+        if "rate limit" in detail.lower() or "429" in detail:
+            mark_exhausted()
+            raise HTTPException(
+                status_code=429,
+                detail="AI rate limit reached (20 requests/day on free tier). Please wait and try again.",
+            )
+        raise HTTPException(status_code=502, detail="AI timeline generation failed. Please try again.")
+
     timeline_events = result["timeline_events"]
     risk_alerts = result["risk_alerts"]
 
