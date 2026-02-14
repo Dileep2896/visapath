@@ -32,9 +32,17 @@ jobs:
 
       - name: Deploy to Azure Web App
         run: |
-          curl -s -X POST \
+          response=$(curl -s -w "\n%{http_code}" -X POST \
             -u "${{ secrets.AZURE_DEPLOY_USER }}:${{ secrets.AZURE_DEPLOY_PASS }}" \
             --data-binary @deploy.zip \
             -H "Content-Type: application/zip" \
-            "https://visapath-app.scm.azurewebsites.net/api/zipdeploy?isAsync=true"
+            "https://visapath-app.scm.azurewebsites.net/api/zipdeploy")
+          http_code=$(echo "$response" | tail -1)
+          body=$(echo "$response" | head -n -1)
+          echo "HTTP $http_code"
+          echo "$body"
+          if [ "$http_code" -ge 400 ]; then
+            echo "::error::Deployment failed with HTTP $http_code"
+            exit 1
+          fi
           echo "Deployment triggered successfully"
