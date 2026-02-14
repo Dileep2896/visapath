@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#0A0E27"/>
+  <!-- Ring (3/4 arc) -->
+  <circle cx="32" cy="32" r="22" stroke="#00D4AA" stroke-width="3" stroke-linecap="round" stroke-dasharray="104 35" transform="rotate(-135 32 32)" fill="none"/>
+  <!-- Faded ring portion -->
+  <circle cx="32" cy="32" r="22" stroke="#00D4AA" stroke-opacity="0.25" stroke-width="3" stroke-linecap="round" stroke-dasharray="35 104" transform="rotate(-135 32 32)" fill="none"/>
+  <!-- Arrow line -->
+  <line x1="24" y1="32" x2="38" y2="32" stroke="#00D4AA" stroke-width="3" stroke-linecap="round"/>
+  <!-- Arrow chevron -->
+  <polyline points="35,26 41,32 35,38" stroke="#00D4AA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Milestone dots -->
+  <circle cx="32" cy="9" r="3.5" fill="#00D4AA"/>
+  <circle cx="55" cy="32" r="3.5" fill="#00D4AA"/>
+  <circle cx="49" cy="49" r="2.5" fill="#00D4AA" opacity="0.35"/>
+</svg>

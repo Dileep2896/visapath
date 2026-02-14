@@ -2,8 +2,7 @@
 
 from fastapi import APIRouter
 from pydantic import BaseModel
-from app.services.timeline_generator import generate_timeline
-from app.services.risk_analyzer import analyze_risks
+from app.services.ai_timeline_generator import generate_ai_timeline
 
 router = APIRouter()
 
@@ -18,14 +17,23 @@ class TimelineRequest(BaseModel):
     currently_employed: bool = False
     career_goal: str = "stay_us_longterm"
     country: str = "Rest of World"
+    # Enhanced fields
+    major_field: str = ""
+    opt_status: str = "none"  # "none" | "applied" | "active" | "expired"
+    program_extended: bool = False
+    original_graduation: str = ""
+    h1b_attempts: int = 0
+    unemployment_days: int = 0
+    has_job_offer: bool = False
 
 
 @router.post("/generate-timeline")
 async def create_timeline(request: TimelineRequest):
     user_input = request.model_dump()
 
-    timeline_events = generate_timeline(user_input)
-    risk_alerts = analyze_risks(user_input, timeline_events)
+    result = await generate_ai_timeline(user_input)
+    timeline_events = result["timeline_events"]
+    risk_alerts = result["risk_alerts"]
 
     # Determine current status
     current_status = {

@@ -678,7 +678,18 @@ az staticwebapp create --name visapath-web --resource-group visapath
 - [x] Verified country-specific logic, STEM vs non-STEM, past event detection all work correctly
 
 ### Day 5 - Final Polish
-- [ ] *Pending*
+
+- [x] Added glowing teal gradient on the timeline vertical line
+- [x] Added "Next" badge on the current timeline event
+- [x] Added smooth chevron rotation animation on expand/collapse
+- [x] Added active press scale effect (`active:scale-[0.995]`) on timeline cards
+- [x] Added view transition fade animation when switching between nav sections
+- [x] Added keyboard focus ring styling for accessibility
+- [x] Added legal disclaimer footer on onboarding page
+- [x] Consistent responsive padding (`p-4 sm:p-6`) across all views
+- [x] Typography pass with improved line height and spacing
+- [x] Replaced inline SVG with lucide-react for empty states
+- [x] Clean unused imports across components
 
 ### Day 6 - Deploy + Demo Video
 - [ ] *Pending*

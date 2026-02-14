@@ -61,6 +61,27 @@ export interface UserInput {
   currently_employed: boolean;
   career_goal: string;
   country: string;
+  // Enhanced fields
+  major_field?: string;
+  opt_status?: string;
+  program_extended?: boolean;
+  original_graduation?: string;
+  h1b_attempts?: number;
+  unemployment_days?: number;
+  has_job_offer?: boolean;
 }
 
-export type AppView = 'onboarding' | 'timeline' | 'actions' | 'chat' | 'documents';
+export interface AuthUser {
+  id: number;
+  email: string;
+  token: string;
+}
+
+export interface SavedTimeline {
+  id: number;
+  user_input: UserInput;
+  timeline_response: TimelineResponse;
+  created_at: string;
+}
+
+export type AppView = 'onboarding' | 'timeline' | 'actions' | 'chat' | 'documents' | 'profile';

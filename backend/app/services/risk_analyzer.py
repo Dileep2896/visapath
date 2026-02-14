@@ -21,6 +21,13 @@ def analyze_risks(user_input: dict, timeline_events: list[dict]) -> list[dict]:
     graduation = _parse_date(user_input.get("expected_graduation"))
     currently_employed = user_input.get("currently_employed", False)
 
+    # Enhanced fields
+    program_extended = user_input.get("program_extended", False)
+    h1b_attempts = user_input.get("h1b_attempts", 0)
+    unemployment_days = user_input.get("unemployment_days", 0)
+    has_job_offer = user_input.get("has_job_offer", False)
+    opt_status = user_input.get("opt_status", "none")
+
     # CPT overuse risk
     if cpt_months >= 12:
         risks.append(_risk(
@@ -108,6 +115,101 @@ def analyze_risks(user_input: dict, timeline_events: list[dict]) -> list[dict]:
             recommendation=(
                 "Have a backup plan (STEM OPT extension, employer with cap-exempt status, "
                 "O-1 visa, or returning to school for a new program)."
+            )
+        ))
+
+    # --- NEW ENHANCED RISK CHECKS ---
+
+    # 1. Unemployment day limit approaching (actual days tracked)
+    if unemployment_days > 0 and visa_type in ("F-1", "OPT"):
+        limit = STEM_OPT_RULES["unemployment_limit_days"] if is_stem else OPT_RULES["unemployment_limit_days"]
+        warning_threshold = 120 if is_stem else 60
+        remaining = limit - unemployment_days
+
+        if remaining <= 0:
+            risks.append(_risk(
+                "unemployment_limit_exceeded", "critical",
+                f"You have used {unemployment_days} of {limit} allowed unemployment days. "
+                "You have exceeded the limit. Your OPT and F-1 status may be terminated.",
+                recommendation="Contact your DSO and an immigration attorney immediately."
+            ))
+        elif unemployment_days >= warning_threshold:
+            risks.append(_risk(
+                "unemployment_limit_approaching", "high",
+                f"You have used {unemployment_days} of {limit} allowed unemployment days "
+                f"({remaining} days remaining). You are approaching the limit.",
+                recommendation=(
+                    "Secure employment as soon as possible. Consider volunteer work in your "
+                    "field of study that can be reported to reduce unemployment days."
+                )
+            ))
+
+    # 2. Program extension without updated I-20
+    if program_extended:
+        risks.append(_risk(
+            "program_extension_i20", "high",
+            "You indicated your program has been extended. An updated I-20 with the new "
+            "program end date is required. Without it, your SEVIS record may be out of date, "
+            "which can affect OPT eligibility and other immigration benefits.",
+            recommendation=(
+                "Contact your DSO immediately to obtain an updated I-20 reflecting "
+                "the new program end date. Ensure your SEVIS record is updated."
+            )
+        ))
+
+    # 3. Multiple H-1B lottery failures
+    if h1b_attempts >= 3:
+        risks.append(_risk(
+            "multiple_h1b_failures", "warning",
+            f"You have had {h1b_attempts} unsuccessful H-1B lottery attempts. While each "
+            "lottery is independent (~30% chance), relying solely on the H-1B lottery is risky.",
+            recommendation=(
+                "Strongly consider alternative visa pathways: EB-1A (extraordinary ability), "
+                "O-1 (extraordinary achievement), L-1 (intracompany transfer), or EB-2 NIW "
+                "(National Interest Waiver). Consult an immigration attorney to evaluate eligibility."
+            )
+        ))
+    elif h1b_attempts >= 1:
+        risks.append(_risk(
+            "h1b_prior_attempts", "info",
+            f"You have had {h1b_attempts} prior H-1B lottery attempt(s). Each lottery is "
+            "independent with ~30% selection rate. Having a backup plan is important.",
+            recommendation=(
+                "Continue applying while exploring alternative options. Consider cap-exempt "
+                "employers (universities, research institutions) that don't require lottery."
+            )
+        ))
+
+    # 4. No job offer with approaching OPT deadline
+    if not has_job_offer and visa_type in ("F-1", "OPT") and graduation:
+        opt_end = graduation + timedelta(days=365)
+        days_to_opt_end = (opt_end - today).days
+        if 0 < days_to_opt_end <= 120:
+            severity = "critical" if days_to_opt_end <= 60 else "high"
+            risks.append(_risk(
+                "no_job_offer_opt_ending", severity,
+                f"You don't have a job offer and your OPT expires in {days_to_opt_end} days. "
+                "Without employment, you will need to leave the US or change status.",
+                recommendation=(
+                    "Intensify your job search immediately. Consider reaching out to staffing "
+                    "agencies, attending job fairs, and leveraging alumni networks. "
+                    + ("Apply for STEM OPT extension if eligible." if is_stem else
+                       "Explore other visa options or consider further education.")
+                )
+            ))
+
+    # 5. Non-STEM with limited post-graduation options
+    if not is_stem and visa_type in ("F-1", "OPT") and career_goal == "stay_us_longterm":
+        risks.append(_risk(
+            "non_stem_limited_options", "warning",
+            "As a non-STEM student, you only have 12 months of OPT with no extension option. "
+            "This gives you a single H-1B lottery attempt during your OPT period. "
+            "If not selected, maintaining legal status becomes challenging.",
+            recommendation=(
+                "Start H-1B sponsorship discussions with employers immediately. "
+                "Consider pursuing a STEM-designated program for additional OPT time. "
+                "Look into cap-exempt H-1B employers (universities, nonprofits). "
+                "Explore O-1 or other visa categories as alternatives."
             )
         ))
 

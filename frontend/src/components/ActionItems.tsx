@@ -60,7 +60,7 @@ export default function ActionItems({ events }: ActionItemsProps) {
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
+    <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-white font-heading">Action Items</h2>
         <p className="text-sm text-slate-400 mt-1">Your prioritized to-do list based on upcoming deadlines</p>

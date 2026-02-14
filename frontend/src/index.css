@@ -127,11 +127,75 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 8px;
 }
 
+/* Force dark autofill background on inputs */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--color-navy-900) inset !important;
+  -webkit-text-fill-color: #E2E8F0 !important;
+  caret-color: #E2E8F0;
+  border-radius: 0.75rem !important;
+  -webkit-background-clip: padding-box !important;
+  background-clip: padding-box !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Auth page animations */
+@keyframes authFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes authSpinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes authFeatureIn {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.auth-float {
+  animation: authFloat 8s ease-in-out infinite;
+}
+
+.auth-float-delayed {
+  animation: authFloat 10s ease-in-out 2s infinite;
+}
+
+.auth-spin-slow {
+  animation: authSpinSlow 60s linear infinite;
+}
+
+.auth-spin-slow-reverse {
+  animation: authSpinSlow 45s linear infinite reverse;
+}
+
+.auth-feature-in {
+  animation: authFeatureIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+/* Focus ring for keyboard accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-teal-400);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
 /* Subtle grid background */
 .bg-grid {
   background-image:
-    linear-gradient(rgba(30, 39, 85, 0.5) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(30, 39, 85, 0.5) 1px, transparent 1px);
+    linear-gradient(rgba(30, 39, 85, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 39, 85, 0.18) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
@@ -146,6 +210,32 @@ h1, h2, h3, h4, h5, h6 {
 
 .glow-amber {
   box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+}
+
+/* Glowing timeline vertical line */
+.timeline-line {
+  background: linear-gradient(
+    to bottom,
+    var(--color-navy-700) 0%,
+    var(--color-teal-400) 30%,
+    var(--color-teal-400) 50%,
+    var(--color-navy-700) 100%
+  );
+  box-shadow: 0 0 8px rgba(0, 212, 170, 0.2);
+}
+
+/* View transition */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
 }
 
 /* Chat markdown styles */

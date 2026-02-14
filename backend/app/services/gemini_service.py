@@ -1,5 +1,6 @@
 """Google Gemini API wrapper for chat and RAG responses."""
 
+import json
 import os
 import google.generativeai as genai
 
@@ -54,3 +55,24 @@ async def chat_with_context(
 
     response = await model.generate_content_async(full_prompt)
     return response.text
+
+
+async def generate_structured_json_async(
+    prompt: str,
+    system_instruction: str,
+) -> dict:
+    """Send a prompt to Gemini and return parsed JSON.
+
+    Uses response_mime_type="application/json" and low temperature
+    for deterministic, structured output.
+    """
+    structured_model = genai.GenerativeModel(
+        model_name="gemini-2.5-flash",
+        system_instruction=system_instruction,
+        generation_config=genai.GenerationConfig(
+            response_mime_type="application/json",
+            temperature=0.1,
+        ),
+    )
+    response = await structured_model.generate_content_async(prompt)
+    return json.loads(response.text)

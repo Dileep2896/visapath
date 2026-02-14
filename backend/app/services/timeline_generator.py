@@ -29,22 +29,39 @@ def generate_timeline(user_input: dict) -> list[dict]:
     career_goal = user_input.get("career_goal", "stay_us_longterm")
     country = user_input.get("country", "Rest of World")
 
+    # Enhanced fields
+    major_field = user_input.get("major_field", "")
+    opt_status = user_input.get("opt_status", "none")
+    program_extended = user_input.get("program_extended", False)
+    original_graduation = _parse_date(user_input.get("original_graduation"))
+    h1b_attempts = user_input.get("h1b_attempts", 0)
+    unemployment_days = user_input.get("unemployment_days", 0)
+    has_job_offer = user_input.get("has_job_offer", False)
+
+    field_label = f" ({major_field})" if major_field else ""
+
+    # Program extension awareness
+    if program_extended:
+        events.extend(_program_extension_events(today, graduation, original_graduation, field_label))
+
     if visa_type == "F-1":
         events.extend(_f1_timeline(
             today, graduation, program_start, is_stem, degree_level,
-            cpt_months, career_goal, country
+            cpt_months, career_goal, country, opt_status, unemployment_days,
+            h1b_attempts, has_job_offer, field_label
         ))
     elif visa_type == "OPT":
         events.extend(_opt_timeline(
-            today, graduation, is_stem, degree_level, career_goal, country
+            today, graduation, is_stem, degree_level, career_goal, country,
+            opt_status, unemployment_days, h1b_attempts, has_job_offer, field_label
         ))
     elif visa_type == "H-1B":
-        events.extend(_h1b_timeline(today, career_goal, country))
+        events.extend(_h1b_timeline(today, career_goal, country, h1b_attempts, field_label))
 
     # Add program milestones
     if program_start and program_start > today:
         events.append(_event(
-            "program_start", "Program Start Date", program_start,
+            "program_start", f"Program Start Date{field_label}", program_start,
             "milestone", "none",
             "Your academic program begins."
         ))
@@ -52,9 +69,27 @@ def generate_timeline(user_input: dict) -> list[dict]:
     if graduation:
         urgency = _deadline_urgency(today, graduation)
         events.append(_event(
-            "graduation", "Expected Graduation", graduation,
+            "graduation", f"Expected Graduation{field_label}", graduation,
             "milestone", urgency,
             "Your program completion date. Key deadlines are calculated from this date."
+        ))
+
+    # Job offer awareness milestones
+    if not has_job_offer and visa_type in ("F-1", "OPT") and graduation:
+        _add_job_search_events(events, today, graduation, opt_status)
+
+    if has_job_offer and visa_type in ("F-1", "OPT"):
+        events.append(_event(
+            "employer_h1b_prep", "Employer H-1B Preparation", today + timedelta(days=14),
+            "milestone", "medium",
+            "Begin coordinating with your employer on H-1B sponsorship. "
+            "Your employer's immigration attorney should start LCA filing preparation.",
+            action_items=[
+                "Confirm employer will sponsor H-1B",
+                "Connect with employer's immigration attorney",
+                "Prepare documents for LCA (Labor Condition Application) filing",
+                "Verify job title and wage level meet H-1B requirements",
+            ]
         ))
 
     # Add green card info if long-term goal
@@ -71,8 +106,41 @@ def generate_timeline(user_input: dict) -> list[dict]:
     return events
 
 
+def _program_extension_events(today, graduation, original_graduation, field_label):
+    """Generate events related to program extension."""
+    events = []
+
+    events.append(_event(
+        "program_extension_notice",
+        f"Program Extended{field_label} — Update Required",
+        today,
+        "deadline", "high",
+        "Your program has been extended. You need an updated I-20 reflecting "
+        "the new program end date. Your SEVIS record must also be updated by your DSO.",
+        action_items=[
+            "Request updated I-20 from DSO with new program end date",
+            "Confirm SEVIS record has been updated",
+            "Keep copies of both original and updated I-20",
+            "Recalculate OPT eligibility window based on new graduation date",
+        ]
+    ))
+
+    if original_graduation and graduation:
+        events.append(_event(
+            "original_graduation",
+            "Original Graduation Date (Before Extension)",
+            original_graduation,
+            "milestone", "none",
+            f"Your original program end date before extension. "
+            f"New graduation date: {graduation.isoformat()}.",
+        ))
+
+    return events
+
+
 def _f1_timeline(today, graduation, program_start, is_stem, degree_level,
-                 cpt_months, career_goal, country):
+                 cpt_months, career_goal, country, opt_status, unemployment_days,
+                 h1b_attempts, has_job_offer, field_label):
     """Generate F-1 specific timeline events."""
     events = []
 
@@ -90,31 +158,49 @@ def _f1_timeline(today, graduation, program_start, is_stem, degree_level,
         ))
         return events  # No OPT events if CPT maxed
 
-    # OPT application window opens (90 days before graduation)
-    opt_window_open = graduation - timedelta(days=OPT_RULES["apply_before_graduation_days"])
-    events.append(_event(
-        "opt_apply_window_open", "OPT Application Window Opens", opt_window_open,
-        "deadline", _deadline_urgency(today, opt_window_open),
-        "You can start applying for post-completion OPT. Apply as early as possible — "
-        f"processing takes {OPT_RULES['ead_processing_months_min']}-{OPT_RULES['ead_processing_months_max']} months.",
-        action_items=[
-            "Request OPT recommendation from DSO",
-            "Prepare Form I-765",
-            "Get passport-style photos taken (2x2 inches)",
-            "Download I-94 from i94.cbp.dhs.gov",
-            "Make copies of passport, visa, and all previous I-20s",
-        ]
-    ))
+    # Skip OPT application steps if already applied or active
+    if opt_status in ("applied", "active"):
+        if opt_status == "applied":
+            events.append(_event(
+                "opt_pending", "OPT Application Pending", today,
+                "milestone", "medium",
+                "Your OPT application has been submitted. Processing typically takes "
+                f"{OPT_RULES['ead_processing_months_min']}-{OPT_RULES['ead_processing_months_max']} months. "
+                "You can track your case at uscis.gov/casestatus.",
+                action_items=[
+                    "Check case status regularly at uscis.gov",
+                    "Keep receipt notice (I-797C) safe",
+                    "Do not travel outside the US without valid EAD",
+                ]
+            ))
+        elif opt_status == "active":
+            _add_unemployment_tracking(events, today, graduation, is_stem, unemployment_days)
+    else:
+        # OPT application window opens (90 days before graduation)
+        opt_window_open = graduation - timedelta(days=OPT_RULES["apply_before_graduation_days"])
+        events.append(_event(
+            "opt_apply_window_open", f"OPT Application Window Opens{field_label}", opt_window_open,
+            "deadline", _deadline_urgency(today, opt_window_open),
+            "You can start applying for post-completion OPT. Apply as early as possible — "
+            f"processing takes {OPT_RULES['ead_processing_months_min']}-{OPT_RULES['ead_processing_months_max']} months.",
+            action_items=[
+                "Request OPT recommendation from DSO",
+                "Prepare Form I-765",
+                "Get passport-style photos taken (2x2 inches)",
+                "Download I-94 from i94.cbp.dhs.gov",
+                "Make copies of passport, visa, and all previous I-20s",
+            ]
+        ))
 
-    # OPT application deadline (60 days after graduation)
-    opt_deadline = graduation + timedelta(days=OPT_RULES["apply_after_graduation_days"])
-    events.append(_event(
-        "opt_apply_deadline", "OPT Application Deadline", opt_deadline,
-        "deadline", "critical",
-        "Last day to apply for OPT (60 days post-graduation). "
-        "Missing this means losing OPT eligibility entirely.",
-        action_items=["Submit I-765 if not already done"]
-    ))
+        # OPT application deadline (60 days after graduation)
+        opt_deadline = graduation + timedelta(days=OPT_RULES["apply_after_graduation_days"])
+        events.append(_event(
+            "opt_apply_deadline", "OPT Application Deadline", opt_deadline,
+            "deadline", "critical",
+            "Last day to apply for OPT (60 days post-graduation). "
+            "Missing this means losing OPT eligibility entirely.",
+            action_items=["Submit I-765 if not already done"]
+        ))
 
     # OPT start (estimated — typically after graduation)
     opt_start = graduation + timedelta(days=1)
@@ -129,6 +215,23 @@ def _f1_timeline(today, graduation, program_start, is_stem, degree_level,
             "Report employment to DSO within 10 days of starting",
         ]
     ))
+
+    # Unemployment tracking based on actual days used
+    if unemployment_days > 0 and opt_status != "active":
+        remaining = OPT_RULES["unemployment_limit_days"] - unemployment_days
+        if remaining <= 30:
+            events.append(_event(
+                "unemployment_critical", "Unemployment Limit Critical", today,
+                "risk", "critical",
+                f"You have used {unemployment_days} of {OPT_RULES['unemployment_limit_days']} "
+                f"unemployment days. Only {remaining} days remaining. "
+                "Your OPT and F-1 status will be terminated if you exceed the limit.",
+                action_items=[
+                    "Secure employment immediately",
+                    "Contact DSO about emergency options",
+                    "Consider volunteer work reporting (must be in field of study)",
+                ]
+            ))
 
     # OPT unemployment limit warning
     unemployment_warning = opt_start + timedelta(days=OPT_RULES["unemployment_limit_days"] - 30)
@@ -153,7 +256,7 @@ def _f1_timeline(today, graduation, program_start, is_stem, degree_level,
     if is_stem:
         stem_apply_deadline = opt_end - timedelta(days=STEM_OPT_RULES["apply_before_opt_expires_days"])
         events.append(_event(
-            "stem_opt_apply", "STEM OPT Extension — Apply By This Date", stem_apply_deadline,
+            "stem_opt_apply", f"STEM OPT Extension — Apply By This Date{field_label}", stem_apply_deadline,
             "deadline", _deadline_urgency(today, stem_apply_deadline),
             "Apply for 24-month STEM OPT extension. Your employer MUST be E-Verify registered.",
             action_items=[
@@ -174,23 +277,28 @@ def _f1_timeline(today, graduation, program_start, is_stem, degree_level,
 
     # H-1B lottery events
     if career_goal in ("stay_us_longterm", "undecided"):
-        events.extend(_h1b_lottery_events(today, graduation, degree_level))
+        events.extend(_h1b_lottery_events(today, graduation, degree_level, h1b_attempts))
 
     return events
 
 
-def _opt_timeline(today, graduation, is_stem, degree_level, career_goal, country):
+def _opt_timeline(today, graduation, is_stem, degree_level, career_goal, country,
+                  opt_status, unemployment_days, h1b_attempts, has_job_offer, field_label):
     """Generate timeline for someone already on OPT."""
     events = []
 
     if graduation:
         opt_end = graduation + timedelta(days=365)
 
+        # Unemployment tracking for active OPT
+        if opt_status == "active":
+            _add_unemployment_tracking(events, today, graduation, is_stem, unemployment_days)
+
         if is_stem and opt_end > today:
             stem_apply_deadline = opt_end - timedelta(days=STEM_OPT_RULES["apply_before_opt_expires_days"])
             if stem_apply_deadline > today:
                 events.append(_event(
-                    "stem_opt_apply", "STEM OPT Extension — Apply By This Date", stem_apply_deadline,
+                    "stem_opt_apply", f"STEM OPT Extension — Apply By This Date{field_label}", stem_apply_deadline,
                     "deadline", _deadline_urgency(today, stem_apply_deadline),
                     "Apply for 24-month STEM OPT extension. Your employer MUST be E-Verify registered.",
                     action_items=[
@@ -216,18 +324,32 @@ def _opt_timeline(today, graduation, is_stem, degree_level, career_goal, country
                 ))
 
     if career_goal in ("stay_us_longterm", "undecided"):
-        events.extend(_h1b_lottery_events(today, graduation, degree_level))
+        events.extend(_h1b_lottery_events(today, graduation, degree_level, h1b_attempts))
+
+    # Job offer specific events
+    if has_job_offer:
+        events.append(_event(
+            "employer_h1b_prep", "Employer H-1B Preparation", today + timedelta(days=14),
+            "milestone", "medium",
+            "Coordinate with your employer on H-1B sponsorship. "
+            "Immigration attorney should begin LCA filing preparation.",
+            action_items=[
+                "Connect with employer's immigration attorney",
+                "Prepare documents for LCA filing",
+                "Verify job title and wage level meet H-1B requirements",
+            ]
+        ))
 
     return events
 
 
-def _h1b_timeline(today, career_goal, country):
+def _h1b_timeline(today, career_goal, country, h1b_attempts, field_label):
     """Generate timeline for someone already on H-1B."""
     events = []
 
     if career_goal == "stay_us_longterm":
         events.append(_event(
-            "i140_filing", "Consider Filing I-140 (Green Card)", today + timedelta(days=30),
+            "i140_filing", f"Consider Filing I-140 (Green Card){field_label}", today + timedelta(days=30),
             "milestone", "medium",
             "Ask your employer to begin the green card process by filing PERM labor certification, "
             "followed by I-140 petition.",
@@ -241,10 +363,97 @@ def _h1b_timeline(today, career_goal, country):
     return events
 
 
-def _h1b_lottery_events(today, graduation, degree_level):
+def _add_unemployment_tracking(events, today, graduation, is_stem, unemployment_days):
+    """Add unemployment day tracking events for active OPT."""
+    limit = STEM_OPT_RULES["unemployment_limit_days"] if is_stem else OPT_RULES["unemployment_limit_days"]
+    remaining = limit - unemployment_days
+
+    if remaining <= 0:
+        events.append(_event(
+            "unemployment_exceeded", "Unemployment Limit EXCEEDED", today,
+            "risk", "critical",
+            f"You have used {unemployment_days} of {limit} unemployment days. "
+            "Your OPT status may be terminated. Contact your DSO immediately.",
+            action_items=[
+                "Contact DSO immediately",
+                "Consult an immigration attorney",
+                "Secure employment as soon as possible",
+            ]
+        ))
+    elif remaining <= 30:
+        events.append(_event(
+            "unemployment_critical", "Unemployment Limit Critical", today,
+            "risk", "critical",
+            f"You have used {unemployment_days} of {limit} unemployment days. "
+            f"Only {remaining} days remaining before your OPT is terminated.",
+            action_items=[
+                "Secure employment immediately",
+                "Contact DSO about emergency options",
+            ]
+        ))
+    elif remaining <= 60:
+        events.append(_event(
+            "unemployment_warning", "Unemployment Days Running Low", today,
+            "risk", "high",
+            f"You have used {unemployment_days} of {limit} unemployment days. "
+            f"{remaining} days remaining.",
+            action_items=[
+                "Intensify job search",
+                "Consider broadening job search to more employers",
+                "Contact DSO to discuss options",
+            ]
+        ))
+
+
+def _add_job_search_events(events, today, graduation, opt_status):
+    """Add job search timeline events when no job offer."""
+    if opt_status in ("applied", "active"):
+        events.append(_event(
+            "job_search_milestone", "Job Search Milestone Check", today + timedelta(days=30),
+            "milestone", "medium",
+            "You don't have a job offer yet. Set concrete weekly targets for applications "
+            "and networking to stay on track before unemployment limits approach.",
+            action_items=[
+                "Apply to at least 10 positions per week",
+                "Attend 2+ networking events or career fairs per month",
+                "Update LinkedIn and resume for target roles",
+                "Connect with your university career services",
+            ]
+        ))
+    elif graduation and graduation > today:
+        search_start = graduation - timedelta(days=180)
+        if search_start > today:
+            events.append(_event(
+                "begin_job_search", "Begin Job Search (6 Months Before Graduation)",
+                search_start, "milestone", "medium",
+                "Start your job search early. Many employers have long hiring cycles, "
+                "especially for positions requiring H-1B sponsorship.",
+                action_items=[
+                    "Research employers known to sponsor H-1B visas",
+                    "Attend career fairs and networking events",
+                    "Update resume and LinkedIn profile",
+                    "Practice for technical/behavioral interviews",
+                ]
+            ))
+
+
+def _h1b_lottery_events(today, graduation, degree_level, h1b_attempts=0):
     """Generate H-1B lottery related events."""
     events = []
     current_year = today.year
+
+    # H-1B attempt history messaging
+    attempt_note = ""
+    if h1b_attempts >= 3:
+        attempt_note = (
+            f" You have had {h1b_attempts} prior attempts. Each lottery is independent (~30% chance). "
+            "Consider alternative pathways: EB-1 (extraordinary ability), O-1 (individuals with extraordinary "
+            "achievement), or L-1 (intracompany transfer) visas."
+        )
+    elif h1b_attempts > 0:
+        attempt_note = (
+            f" This will be attempt #{h1b_attempts + 1}. Each lottery is independent with ~30% selection rate."
+        )
 
     # Generate for next 3 years of lottery cycles
     for year in range(current_year, current_year + 3):
@@ -258,16 +467,27 @@ def _h1b_lottery_events(today, graduation, degree_level):
 
         year_label = f"FY{year + 1}"
 
+        description = (
+            f"H-1B electronic registration period for {year_label}. Your employer must register you. "
+            + ("US Master's cap gives you two chances in the lottery." if degree_level in ("Master's", "PhD") else "Regular cap: 65,000 slots.")
+            + attempt_note
+        )
+
+        action_items = [
+            "Confirm employer will sponsor H-1B",
+            "Provide passport and immigration documents to employer/attorney",
+            "Employer completes electronic registration on USCIS portal",
+        ]
+
+        # Add cap-gap note if re-applying
+        if h1b_attempts > 0:
+            action_items.append("Verify cap-gap extension eligibility if currently on OPT")
+
         events.append(_event(
             f"h1b_registration_{year}", f"H-1B Registration Opens ({year_label})", reg_open,
             "deadline", _deadline_urgency(today, reg_open),
-            f"H-1B electronic registration period for {year_label}. Your employer must register you. "
-            + ("US Master's cap gives you two chances in the lottery." if degree_level in ("Master's", "PhD") else "Regular cap: 65,000 slots."),
-            action_items=[
-                "Confirm employer will sponsor H-1B",
-                "Provide passport and immigration documents to employer/attorney",
-                "Employer completes electronic registration on USCIS portal",
-            ]
+            description,
+            action_items=action_items,
         ))
 
         events.append(_event(
@@ -292,6 +512,22 @@ def _h1b_lottery_events(today, graduation, degree_level):
         ))
 
         break  # Only show the next lottery cycle
+
+    # After 3+ failed attempts, suggest alternatives
+    if h1b_attempts >= 3:
+        events.append(_event(
+            "h1b_alternatives", "Consider Alternative Visa Pathways", today + timedelta(days=7),
+            "milestone", "high",
+            f"After {h1b_attempts} H-1B lottery attempts, consider alternative visa categories. "
+            "Each H-1B lottery is independent (~30% chance), but diversifying your strategy is recommended.",
+            action_items=[
+                "Evaluate EB-1A eligibility (extraordinary ability) — no employer sponsorship needed",
+                "Explore O-1 visa for individuals with extraordinary achievement in your field",
+                "Check if your employer has offices abroad for L-1 intracompany transfer",
+                "Consider EB-2 NIW (National Interest Waiver) if your work benefits the US",
+                "Consult an immigration attorney about all available options",
+            ]
+        ))
 
     return events
 

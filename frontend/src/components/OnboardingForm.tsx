@@ -1,10 +1,15 @@
-import { useState } from 'react';
-import { ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { ChevronRight, ChevronLeft, Loader2, Minus, Plus, Search } from 'lucide-react';
 import type { UserInput } from '../types';
+import Logo from './Logo';
+import DatePicker from './DatePicker';
 
 interface OnboardingFormProps {
   onSubmit: (data: UserInput) => void;
   loading: boolean;
+  initialData?: UserInput | null;
+  initialStep?: number;
+  onSaveDraft?: (data: UserInput, step: number) => void;
 }
 
 const VISA_TYPES = [
@@ -31,24 +36,185 @@ const COUNTRIES = [
   'Philippines', 'Colombia', 'Turkey', 'Iran', 'Other',
 ];
 
-const TOTAL_STEPS = 4;
+const OPT_STATUSES = [
+  { value: 'none', label: 'Not applied yet' },
+  { value: 'applied', label: 'Applied (pending)' },
+  { value: 'active', label: 'Active (have EAD)' },
+  { value: 'expired', label: 'Expired' },
+];
 
-export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProps) {
-  const [step, setStep] = useState(1);
+const COMMON_MAJORS = [
+  'Computer Science',
+  'Electrical Engineering',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Chemical Engineering',
+  'Data Science',
+  'Information Technology',
+  'Software Engineering',
+  'Biomedical Engineering',
+  'Mathematics',
+  'Statistics',
+  'Physics',
+  'Biology',
+  'Chemistry',
+  'Business Administration',
+  'Finance',
+  'Accounting',
+  'Economics',
+  'Marketing',
+  'Management',
+  'Public Health',
+  'Nursing',
+  'Pharmacy',
+  'Psychology',
+  'Education',
+  'Architecture',
+  'Environmental Science',
+  'Political Science',
+  'Communications',
+  'Graphic Design',
+];
+
+function Stepper({ value, min, max, onChange, suffix }: {
+  value: number; min: number; max: number; onChange: (v: number) => void; suffix?: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(min, value - 1))}
+        disabled={value <= min}
+        className="w-10 h-10 rounded-lg bg-navy-800 border border-navy-700 flex items-center justify-center text-slate-300 hover:border-teal-400 hover:text-teal-400 transition-all disabled:opacity-30 disabled:hover:border-navy-700 disabled:hover:text-slate-300 cursor-pointer"
+      >
+        <Minus size={16} />
+      </button>
+      <div className="flex-1 text-center bg-navy-800 border border-navy-700 rounded-lg py-2.5 px-4">
+        <span className="text-lg font-semibold text-white">{value}</span>
+        {suffix && <span className="text-sm text-slate-400 ml-1">{suffix}</span>}
+      </div>
+      <button
+        type="button"
+        onClick={() => onChange(Math.min(max, value + 1))}
+        disabled={value >= max}
+        className="w-10 h-10 rounded-lg bg-navy-800 border border-navy-700 flex items-center justify-center text-slate-300 hover:border-teal-400 hover:text-teal-400 transition-all disabled:opacity-30 disabled:hover:border-navy-700 disabled:hover:text-slate-300 cursor-pointer"
+      >
+        <Plus size={16} />
+      </button>
+    </div>
+  );
+}
+
+function MajorPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const filtered = COMMON_MAJORS.filter(m =>
+    m.toLowerCase().includes((search || value).toLowerCase())
+  );
+
+  function select(major: string) {
+    onChange(major);
+    setSearch('');
+    setOpen(false);
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <label className="block text-sm font-medium text-slate-300 mb-2">
+        Major / Field of Study
+      </label>
+      <div className="relative">
+        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={open ? search : value}
+          onChange={e => { setSearch(e.target.value); onChange(e.target.value); if (!open) setOpen(true); }}
+          onFocus={() => setOpen(true)}
+          placeholder="Search or type your major..."
+          className="w-full bg-navy-800 border border-navy-700 rounded-lg pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-teal-400 transition-colors"
+        />
+      </div>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-navy-800 border border-navy-700 rounded-lg shadow-2xl shadow-black/40 max-h-48 overflow-y-auto">
+          {filtered.length > 0 ? filtered.map(major => (
+            <button
+              key={major}
+              type="button"
+              onClick={() => select(major)}
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors cursor-pointer ${
+                value === major
+                  ? 'bg-teal-400/10 text-teal-400'
+                  : 'text-slate-300 hover:bg-navy-700'
+              }`}
+            >
+              {major}
+            </button>
+          )) : (
+            <div className="px-4 py-3 text-xs text-slate-500">
+              No matches — your custom entry will be used
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const DEFAULTS: UserInput = {
+  visa_type: 'F-1',
+  degree_level: "Master's",
+  is_stem: true,
+  program_start: '',
+  expected_graduation: '',
+  cpt_months_used: 0,
+  currently_employed: false,
+  career_goal: 'stay_us_longterm',
+  country: 'India',
+  major_field: '',
+  opt_status: 'none',
+  program_extended: false,
+  original_graduation: '',
+  h1b_attempts: 0,
+  unemployment_days: 0,
+  has_job_offer: false,
+};
+
+export default function OnboardingForm({ onSubmit, loading, initialData, initialStep, onSaveDraft }: OnboardingFormProps) {
+  const isEditing = !!initialData;
+  const [step, setStep] = useState(initialStep ?? 1);
   const [slideDir, setSlideDir] = useState<'right' | 'left'>('right');
   const [animKey, setAnimKey] = useState(0);
-  const [data, setData] = useState<UserInput>({
-    visa_type: 'F-1',
-    degree_level: "Master's",
-    is_stem: true,
-    program_start: '',
-    expected_graduation: '',
-    cpt_months_used: 0,
-    currently_employed: false,
-    career_goal: 'stay_us_longterm',
-    country: 'India',
-  });
+  const [data, setData] = useState<UserInput>(initialData ?? DEFAULTS);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const showOPTStep = data.visa_type === 'F-1' || data.visa_type === 'OPT';
+  const totalSteps = showOPTStep ? 5 : 4;
+
+  // Map display step to logical step
+  // Steps: 1=Visa/Country, 2=Academic, 3=Dates/Employment, 4=OPT(conditional), 5(or 4)=Career Goals
+  function getLogicalStep() {
+    if (!showOPTStep && step >= 4) return 'career';
+    if (showOPTStep && step === 4) return 'opt';
+    if (showOPTStep && step === 5) return 'career';
+    if (step === 1) return 'visa';
+    if (step === 2) return 'academic';
+    if (step === 3) return 'dates';
+    return 'career';
+  }
+
+  const logicalStep = getLogicalStep();
 
   function update(field: keyof UserInput, value: string | number | boolean) {
     setData(prev => ({ ...prev, [field]: value }));
@@ -58,20 +224,23 @@ export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProp
   function validateStep(): boolean {
     const newErrors: Record<string, string> = {};
 
-    if (step === 1) {
+    if (logicalStep === 'visa') {
       if (!data.visa_type) newErrors.visa_type = 'Please select your visa type';
       if (!data.country) newErrors.country = 'Please select your country';
     }
 
-    if (step === 2) {
+    if (logicalStep === 'academic') {
       if (!data.degree_level) newErrors.degree_level = 'Please select your degree level';
     }
 
-    if (step === 3) {
+    if (logicalStep === 'dates') {
       if (!data.program_start) newErrors.program_start = 'Please enter your program start date';
       if (!data.expected_graduation) newErrors.expected_graduation = 'Please enter your expected graduation date';
       if (data.program_start && data.expected_graduation && data.program_start >= data.expected_graduation) {
         newErrors.expected_graduation = 'Graduation must be after program start';
+      }
+      if (data.program_extended && !data.original_graduation) {
+        newErrors.original_graduation = 'Please enter your original graduation date';
       }
     }
 
@@ -81,10 +250,12 @@ export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProp
 
   function handleNext() {
     if (!validateStep()) return;
-    if (step < TOTAL_STEPS) {
+    if (step < totalSteps) {
+      const nextStep = step + 1;
       setSlideDir('right');
       setAnimKey(k => k + 1);
-      setStep(step + 1);
+      setStep(nextStep);
+      onSaveDraft?.(data, nextStep);
     } else {
       onSubmit(data);
     }
@@ -101,15 +272,10 @@ export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProp
       {/* Background gradient accent */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-teal-400/5 rounded-full blur-3xl pointer-events-none" />
       <div className="w-full max-w-lg relative z-10">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <span className="w-10 h-10 rounded-xl bg-teal-400 flex items-center justify-center text-navy-950 font-extrabold text-lg">
-              VP
-            </span>
+        <div className="flex flex-col items-center mb-10">
+          <div className="mb-4">
+            <Logo size="default" />
           </div>
-          <h1 className="text-3xl font-bold font-heading text-white">
-            Welcome to VisaPath
-          </h1>
           <p className="text-slate-400 mt-2">
             Tell us about your situation and we'll build your personalized immigration timeline
           </p>
@@ -117,24 +283,24 @@ export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProp
 
         {/* Progress bar */}
         <div className="flex items-center gap-2 mb-8">
-          {Array.from({ length: TOTAL_STEPS }, (_, i) => (
-            <div key={i} className="flex-1 flex items-center gap-2">
+          {Array.from({ length: totalSteps }, (_, i) => (
+            <div key={i} className="flex-1">
               <div
-                className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                className={`h-1.5 rounded-full transition-all duration-300 ${
                   i + 1 <= step ? 'bg-teal-400' : 'bg-navy-700'
                 }`}
               />
             </div>
           ))}
           <span className="text-xs text-slate-500 ml-2">
-            {step}/{TOTAL_STEPS}
+            {step}/{totalSteps}
           </span>
         </div>
 
-        <div className="bg-navy-900 rounded-2xl border border-navy-700 p-8 overflow-hidden">
+        <div className="bg-navy-900 rounded-2xl border border-navy-700 p-8 overflow-visible">
           <div key={animKey} className={slideDir === 'right' ? 'animate-slide-in-right' : 'animate-slide-in-left'}>
           {/* Step 1: Visa & Country */}
-          {step === 1 && (
+          {logicalStep === 'visa' && (
             <div className="space-y-6">
               <h2 className="text-lg font-semibold text-white font-heading">
                 Visa Status & Nationality
@@ -179,7 +345,7 @@ export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProp
           )}
 
           {/* Step 2: Academic Info */}
-          {step === 2 && (
+          {logicalStep === 'academic' && (
             <div className="space-y-6">
               <h2 className="text-lg font-semibold text-white font-heading">
                 Academic Information
@@ -225,37 +391,36 @@ export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProp
                   ))}
                 </div>
               </div>
+              <MajorPicker value={data.major_field || ''} onChange={v => update('major_field', v)} />
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Months of full-time CPT used
                 </label>
-                <input
-                  type="number"
+                <Stepper
+                  value={data.cpt_months_used}
                   min={0}
                   max={36}
-                  value={data.cpt_months_used}
-                  onChange={e => update('cpt_months_used', parseInt(e.target.value) || 0)}
-                  className="w-full bg-navy-800 border border-navy-700 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-400 transition-colors"
+                  onChange={v => update('cpt_months_used', v)}
+                  suffix={data.cpt_months_used === 1 ? ' month' : ' months'}
                 />
               </div>
             </div>
           )}
 
-          {/* Step 3: Program Dates */}
-          {step === 3 && (
+          {/* Step 3: Program Dates & Employment */}
+          {logicalStep === 'dates' && (
             <div className="space-y-6">
               <h2 className="text-lg font-semibold text-white font-heading">
-                Program Dates
+                Program Dates & Employment
               </h2>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Program Start Date
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={data.program_start}
-                  onChange={e => update('program_start', e.target.value)}
-                  className="w-full bg-navy-800 border border-navy-700 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-400 transition-colors [color-scheme:dark]"
+                  onChange={v => update('program_start', v)}
+                  placeholder="Select start date"
                 />
                 {errors.program_start && <p className="text-red-400 text-xs mt-1">{errors.program_start}</p>}
               </div>
@@ -263,11 +428,10 @@ export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProp
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Expected Graduation Date
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={data.expected_graduation}
-                  onChange={e => update('expected_graduation', e.target.value)}
-                  className="w-full bg-navy-800 border border-navy-700 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-400 transition-colors [color-scheme:dark]"
+                  onChange={v => update('expected_graduation', v)}
+                  placeholder="Select graduation date"
                 />
                 {errors.expected_graduation && <p className="text-red-400 text-xs mt-1">{errors.expected_graduation}</p>}
               </div>
@@ -291,11 +455,120 @@ export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProp
                   ))}
                 </div>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Was your program extended?
+                </label>
+                <div className="flex gap-2">
+                  {[true, false].map(val => (
+                    <button
+                      key={String(val)}
+                      onClick={() => update('program_extended', val)}
+                      className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all border cursor-pointer ${
+                        data.program_extended === val
+                          ? 'bg-teal-400/10 border-teal-400 text-teal-400'
+                          : 'bg-navy-800 border-navy-700 text-slate-300 hover:border-navy-600'
+                      }`}
+                    >
+                      {val ? 'Yes' : 'No'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {data.program_extended && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Original Graduation Date (before extension)
+                  </label>
+                  <DatePicker
+                    value={data.original_graduation || ''}
+                    onChange={v => update('original_graduation', v)}
+                    placeholder="Select original date"
+                  />
+                  {errors.original_graduation && <p className="text-red-400 text-xs mt-1">{errors.original_graduation}</p>}
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Do you have a job or job offer?
+                </label>
+                <div className="flex gap-2">
+                  {[true, false].map(val => (
+                    <button
+                      key={String(val)}
+                      onClick={() => update('has_job_offer', val)}
+                      className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all border cursor-pointer ${
+                        data.has_job_offer === val
+                          ? 'bg-teal-400/10 border-teal-400 text-teal-400'
+                          : 'bg-navy-800 border-navy-700 text-slate-300 hover:border-navy-600'
+                      }`}
+                    >
+                      {val ? 'Yes' : 'No'}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Step 4: Career Goals */}
-          {step === 4 && (
+          {/* Step 4 (OPT-specific): OPT Status, Unemployment, H-1B Attempts */}
+          {logicalStep === 'opt' && (
+            <div className="space-y-6">
+              <h2 className="text-lg font-semibold text-white font-heading">
+                OPT & H-1B Details
+              </h2>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Current OPT Status
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {OPT_STATUSES.map(({ value, label }) => (
+                    <button
+                      key={value}
+                      onClick={() => update('opt_status', value)}
+                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all border cursor-pointer ${
+                        data.opt_status === value
+                          ? 'bg-teal-400/10 border-teal-400 text-teal-400'
+                          : 'bg-navy-800 border-navy-700 text-slate-300 hover:border-navy-600'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Unemployment days used (during OPT)
+                </label>
+                <Stepper
+                  value={data.unemployment_days || 0}
+                  min={0}
+                  max={data.is_stem ? 150 : 90}
+                  onChange={v => update('unemployment_days', v)}
+                  suffix={data.unemployment_days === 1 ? ' day' : ' days'}
+                />
+                <p className="text-xs text-slate-500 mt-2">
+                  Max {data.is_stem ? '150' : '90'} days allowed ({data.is_stem ? 'STEM OPT' : 'regular OPT'})
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Prior H-1B lottery attempts
+                </label>
+                <Stepper
+                  value={data.h1b_attempts || 0}
+                  min={0}
+                  max={10}
+                  onChange={v => update('h1b_attempts', v)}
+                  suffix={data.h1b_attempts === 1 ? ' attempt' : ' attempts'}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Career Goals (final step) */}
+          {logicalStep === 'career' && (
             <div className="space-y-6">
               <h2 className="text-lg font-semibold text-white font-heading">
                 Career Goals
@@ -347,17 +620,23 @@ export default function OnboardingForm({ onSubmit, loading }: OnboardingFormProp
                   <Loader2 size={16} className="animate-spin" />
                   Building Timeline...
                 </>
-              ) : step < TOTAL_STEPS ? (
+              ) : step < totalSteps ? (
                 <>
                   Continue
                   <ChevronRight size={16} />
                 </>
+              ) : isEditing ? (
+                'Update & Regenerate Timeline'
               ) : (
                 'Generate My Timeline'
               )}
             </button>
           </div>
         </div>
+
+        <p className="text-center text-xs text-slate-600 mt-6">
+          VisaPath provides general immigration information only. Always consult your DSO or an immigration attorney for legal advice.
+        </p>
       </div>
     </div>
   );
