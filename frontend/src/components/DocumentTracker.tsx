@@ -18,13 +18,27 @@ export default function DocumentTracker() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
+  // Load saved checks from localStorage
+  function loadChecked(step: string): Set<string> {
+    try {
+      const saved = localStorage.getItem(`visapath_docs_${step}`);
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  }
+
+  function saveChecked(step: string, items: Set<string>) {
+    localStorage.setItem(`visapath_docs_${step}`, JSON.stringify([...items]));
+  }
+
   useEffect(() => {
     setLoading(true);
     setError(false);
     getRequiredDocuments(activeStep)
       .then(res => {
         setDocuments(res.documents || []);
-        setChecked(new Set());
+        setChecked(loadChecked(activeStep));
       })
       .catch(() => {
         setDocuments([]);
@@ -38,6 +52,7 @@ export default function DocumentTracker() {
       const next = new Set(prev);
       if (next.has(name)) next.delete(name);
       else next.add(name);
+      saveChecked(activeStep, next);
       return next;
     });
   }
