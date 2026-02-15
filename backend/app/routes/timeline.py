@@ -61,6 +61,7 @@ class TimelineRequest(BaseModel):
 
 @router.post("/generate-timeline")
 async def create_timeline(request: TimelineRequest, user: dict = Depends(get_current_user)):
+    logger.info("Timeline request from user %s (email: %s)", user["id"], user["email"])
     # Check per-user credits
     credits_used = user.get("credits_used", 0) or 0
     if credits_used >= CREDIT_LIMIT:

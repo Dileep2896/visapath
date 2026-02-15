@@ -126,16 +126,24 @@ export async function checkRateLimit(): Promise<{ allowed: boolean; remaining: n
 
 // --- Timeline generation (auth required, uses credits) ---
 export async function generateTimeline(input: UserInput): Promise<TimelineResponse> {
-  const res = await authFetch(`${API_BASE}/generate-timeline`, {
-    method: 'POST',
-    body: JSON.stringify(input),
-  });
+  let res: Response;
+  try {
+    res = await authFetch(`${API_BASE}/generate-timeline`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  } catch {
+    throw new Error('Network error — check your connection and try again.');
+  }
   if (!res.ok) {
+    const data = await res.json().catch(() => null);
     if (res.status === 429) {
-      const data = await res.json().catch(() => null);
       throw new Error(data?.detail || 'No credits remaining. You have 5 timeline generations.');
     }
-    throw new Error('Failed to generate timeline');
+    if (res.status === 401) {
+      throw new Error('Session expired — please log out and log back in.');
+    }
+    throw new Error(data?.detail || `Timeline generation failed (${res.status}). Please try again.`);
   }
   return res.json();
 }
