@@ -56,6 +56,7 @@ async def me(user: dict = Depends(get_current_user)):
         "profile": user.get("profile"),
         "cached_timeline": user.get("cached_timeline"),
         "cached_tax_guide": user.get("cached_tax_guide"),
+        "credits_used": user.get("credits_used", 0) or 0,
     }
 
 

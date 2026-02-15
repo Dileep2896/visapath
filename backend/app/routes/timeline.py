@@ -1,7 +1,7 @@
 """Timeline generation API route."""
 
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from app.services.ai_timeline_generator import generate_ai_timeline
 from app.ai_rate_limit import (
@@ -11,16 +11,32 @@ from app.ai_rate_limit import (
     mark_exhausted,
     AIRateLimitExceeded,
 )
+from app.dependencies import get_current_user
+from app.database import increment_credits_used
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+CREDIT_LIMIT = 5
 
 
 @router.get("/rate-limit-status")
 async def rate_limit_status():
     """Return current AI usage so the frontend can pre-check."""
     return get_ai_rate_status()
+
+
+@router.get("/credits")
+async def get_credits(user: dict = Depends(get_current_user)):
+    """Return the user's credit usage."""
+    used = user.get("credits_used", 0) or 0
+    return {
+        "used": used,
+        "limit": CREDIT_LIMIT,
+        "remaining": max(CREDIT_LIMIT - used, 0),
+        "allowed": used < CREDIT_LIMIT,
+    }
 
 
 class TimelineRequest(BaseModel):
@@ -44,8 +60,16 @@ class TimelineRequest(BaseModel):
 
 
 @router.post("/generate-timeline")
-async def create_timeline(request: TimelineRequest):
-    # Fast-fail if we already know we're rate-limited
+async def create_timeline(request: TimelineRequest, user: dict = Depends(get_current_user)):
+    # Check per-user credits
+    credits_used = user.get("credits_used", 0) or 0
+    if credits_used >= CREDIT_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail=f"You've used all {CREDIT_LIMIT} timeline credits. Contact support for more.",
+        )
+
+    # Fast-fail if we already know we're rate-limited (global Gemini limit)
     try:
         check_ai_rate_limit()
     except AIRateLimitExceeded as e:
@@ -56,6 +80,7 @@ async def create_timeline(request: TimelineRequest):
     try:
         result = await generate_ai_timeline(user_input)
         record_ai_request()
+        increment_credits_used(user["id"])
     except Exception as e:
         logger.exception("Timeline generation failed")
         detail = str(e)
@@ -63,7 +88,7 @@ async def create_timeline(request: TimelineRequest):
             mark_exhausted()
             raise HTTPException(
                 status_code=429,
-                detail="AI rate limit reached (20 requests/day on free tier). Please wait and try again.",
+                detail="AI rate limit reached. Please wait and try again.",
             )
         raise HTTPException(status_code=502, detail="AI timeline generation failed. Please try again.")
 

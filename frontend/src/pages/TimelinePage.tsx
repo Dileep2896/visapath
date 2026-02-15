@@ -1,12 +1,15 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { TimelineSkeleton } from '../components/Skeleton';
 import TimelineDashboard from '../components/TimelineDashboard';
 import WhatIfPanel from '../components/WhatIfPanel';
-import { Save, Check, Clock, RefreshCw, FileText, User, Map } from 'lucide-react';
+import { Save, Check, Clock, RefreshCw, FileText, User, Map, Zap } from 'lucide-react';
+import { checkRateLimit } from '../utils/api';
 
 export default function TimelinePage() {
   const navigate = useNavigate();
+  const [credits, setCredits] = useState<{ remaining: number; limit: number } | null>(null);
   const {
     user,
     userInput,
@@ -23,6 +26,13 @@ export default function TimelinePage() {
     handleWhatIfReset,
     handleRetryTimeline,
   } = useAuth();
+
+  // Fetch credits on mount and after generation
+  useEffect(() => {
+    if (user) {
+      checkRateLimit().then((rl) => setCredits({ remaining: rl.remaining, limit: rl.limit }));
+    }
+  }, [user, timelineData]);
 
   // Explicit AI generation (onboarding submit, retry) → fancy skeleton
   if (generating && !timelineData) return <TimelineSkeleton />;
@@ -137,6 +147,16 @@ export default function TimelinePage() {
           </span>
         )}
         <div className="flex-1" />
+        {user && credits && (
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${
+            credits.remaining > 0
+              ? 'bg-teal-500/10 border-teal-500/20 text-teal-400'
+              : 'bg-red-500/10 border-red-500/20 text-red-400'
+          }`}>
+            <Zap size={14} />
+            {credits.remaining}/{credits.limit} credits left
+          </div>
+        )}
         {user && (
           <button
             onClick={handleSaveTimeline}

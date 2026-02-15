@@ -141,6 +141,15 @@ def init_db():
                 cur.execute("ALTER TABLE users ADD COLUMN cached_tax_guide TEXT")
                 conn.commit()
 
+            # Migration: add credits_used column if missing
+            cur.execute(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'users' AND column_name = 'credits_used'"
+            )
+            if not cur.fetchone():
+                cur.execute("ALTER TABLE users ADD COLUMN credits_used INTEGER NOT NULL DEFAULT 0")
+                conn.commit()
+
             cur.execute(
                 f"SELECT id FROM users WHERE email = {PH}", ("demo@visapath.com",)
             )
@@ -183,6 +192,15 @@ def init_db():
             ]
             if "cached_tax_guide" not in cols:
                 conn.execute("ALTER TABLE users ADD COLUMN cached_tax_guide TEXT")
+                conn.commit()
+
+            # Migration: add credits_used column if missing
+            cols = [
+                row[1]
+                for row in conn.execute("PRAGMA table_info(users)").fetchall()
+            ]
+            if "credits_used" not in cols:
+                conn.execute("ALTER TABLE users ADD COLUMN credits_used INTEGER NOT NULL DEFAULT 0")
                 conn.commit()
 
             existing = conn.execute(
@@ -272,7 +290,7 @@ def get_user_by_id(user_id: int) -> dict | None:
         if USE_PG:
             cur = _cursor(conn)
             cur.execute(
-                f"SELECT id, email, profile, cached_timeline, cached_tax_guide, created_at FROM users WHERE id = {PH}",
+                f"SELECT id, email, profile, cached_timeline, cached_tax_guide, credits_used, created_at FROM users WHERE id = {PH}",
                 (user_id,),
             )
             row = cur.fetchone()
@@ -297,7 +315,7 @@ def get_user_by_id(user_id: int) -> dict | None:
             return result
         else:
             row = conn.execute(
-                f"SELECT id, email, profile, cached_timeline, cached_tax_guide, created_at FROM users WHERE id = {PH}",
+                f"SELECT id, email, profile, cached_timeline, cached_tax_guide, credits_used, created_at FROM users WHERE id = {PH}",
                 (user_id,),
             ).fetchone()
             if row is None:
@@ -362,6 +380,35 @@ def save_cached_timeline(user_id: int, timeline_response: dict) -> None:
                 (timeline_json, user_id),
             )
             conn.commit()
+    finally:
+        conn.close()
+
+
+def increment_credits_used(user_id: int) -> int:
+    """Increment credits_used for a user and return the new count."""
+    conn = get_db()
+    try:
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(
+                f"UPDATE users SET credits_used = credits_used + 1 WHERE id = {PH} RETURNING credits_used",
+                (user_id,),
+            )
+            row = cur.fetchone()
+            conn.commit()
+            cur.close()
+            return row["credits_used"]
+        else:
+            conn.execute(
+                f"UPDATE users SET credits_used = credits_used + 1 WHERE id = {PH}",
+                (user_id,),
+            )
+            conn.commit()
+            row = conn.execute(
+                f"SELECT credits_used FROM users WHERE id = {PH}",
+                (user_id,),
+            ).fetchone()
+            return dict(row)["credits_used"]
     finally:
         conn.close()
 

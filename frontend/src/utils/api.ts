@@ -113,10 +113,10 @@ export async function getMyTimelines(): Promise<SavedTimeline[]> {
   return data.timelines;
 }
 
-// --- Rate limit pre-check ---
+// --- Credit pre-check ---
 export async function checkRateLimit(): Promise<{ allowed: boolean; remaining: number; limit: number }> {
   try {
-    const res = await fetch(`${API_BASE}/rate-limit-status`);
+    const res = await authFetch(`${API_BASE}/credits`);
     if (!res.ok) return { allowed: true, remaining: 999, limit: 999 }; // fail-open
     return res.json();
   } catch {
@@ -124,16 +124,16 @@ export async function checkRateLimit(): Promise<{ allowed: boolean; remaining: n
   }
 }
 
-// --- Existing API ---
+// --- Timeline generation (auth required, uses credits) ---
 export async function generateTimeline(input: UserInput): Promise<TimelineResponse> {
-  const res = await fetch(`${API_BASE}/generate-timeline`, {
+  const res = await authFetch(`${API_BASE}/generate-timeline`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
   if (!res.ok) {
     if (res.status === 429) {
-      throw new Error('Rate limit reached — free tier allows 20 AI requests/day. Please wait and try again.');
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.detail || 'No credits remaining. You have 5 timeline generations.');
     }
     throw new Error('Failed to generate timeline');
   }
