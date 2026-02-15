@@ -6,7 +6,7 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta, timezone
 
-SECRET_KEY = os.environ.get("JWT_SECRET", "visapath-dev-secret-change-in-production")
+SECRET_KEY = os.environ.get("JWT_SECRET", "dev-only-fallback")
 ALGORITHM = "HS256"
 TOKEN_EXPIRY_DAYS = 7
 
