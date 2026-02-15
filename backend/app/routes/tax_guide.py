@@ -1,20 +1,21 @@
 """Tax guide API route."""
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 from app.services.gemini_service import generate_structured_json_async
 from app.services.rag_service import retrieve_context
 from app.ai_rate_limit import check_ai_rate_limit, record_ai_request, mark_exhausted, AIRateLimitExceeded
+from app.dependencies import get_current_user
 
 router = APIRouter()
 
 
 class TaxGuideRequest(BaseModel):
-    visa_type: str
-    country: str
+    visa_type: str = Field(max_length=20)
+    country: str = Field(max_length=100)
     has_income: bool = True
-    income_types: list[str] = []
-    years_in_us: int = 1
+    income_types: list[str] = Field(default=[], max_length=20)
+    years_in_us: int = Field(default=1, ge=0, le=50)
 
 
 TAX_SYSTEM_PROMPT = """\
@@ -25,7 +26,7 @@ frame everything as general informational guidance. Use only the reference data 
 
 
 @router.post("/tax-guide")
-async def tax_guide(request: TaxGuideRequest):
+async def tax_guide(request: TaxGuideRequest, user: dict = Depends(get_current_user)):
     try:
         check_ai_rate_limit()
     except AIRateLimitExceeded as e:

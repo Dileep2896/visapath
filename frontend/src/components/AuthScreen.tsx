@@ -48,9 +48,19 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
       setError('Email and password are required');
       return;
     }
-    if (mode === 'register' && password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
+    if (mode === 'register') {
+      if (password.length < 8) {
+        setError('Password must be at least 8 characters');
+        return;
+      }
+      if (!/\d/.test(password)) {
+        setError('Password must contain at least one number');
+        return;
+      }
+      if (!/[a-zA-Z]/.test(password)) {
+        setError('Password must contain at least one letter');
+        return;
+      }
     }
 
     setLoading(true);
@@ -227,7 +237,7 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder={mode === 'register' ? 'Min 6 characters' : 'Enter your password'}
+                  placeholder={mode === 'register' ? 'Min 8 chars, letters + numbers' : 'Enter your password'}
                   autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
                   className="w-full bg-navy-900 border border-navy-700 rounded-xl pl-11 pr-11 py-3.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400/20 transition-all [color-scheme:dark]"
                 />

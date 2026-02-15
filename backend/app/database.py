@@ -3,7 +3,10 @@ from __future__ import annotations
 
 import os
 import json
+import logging
 import sqlite3
+
+logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
@@ -13,6 +16,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL:
     import psycopg2
     from psycopg2.extras import RealDictCursor
+    from psycopg2 import pool as pg_pool
 
     USE_PG = True
     PH = "%s"  # placeholder
@@ -23,20 +27,49 @@ else:
 # SQLite path (only used when USE_PG is False)
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "visapath.db")
 
+# ---------------------------------------------------------------------------
+# Connection pool (PostgreSQL only)
+# ---------------------------------------------------------------------------
+_pg_pool: pg_pool.SimpleConnectionPool | None = None
+
+
+def _get_pool() -> pg_pool.SimpleConnectionPool:
+    """Lazily create and return the PG connection pool."""
+    global _pg_pool
+    if _pg_pool is None or _pg_pool.closed:
+        _pg_pool = pg_pool.SimpleConnectionPool(
+            minconn=1, maxconn=10, dsn=DATABASE_URL, connect_timeout=5,
+        )
+        logger.info("PostgreSQL connection pool created (1-10 connections)")
+    return _pg_pool
+
 
 # ---------------------------------------------------------------------------
 # Connection helpers
 # ---------------------------------------------------------------------------
 def get_db():
-    """Return a database connection."""
+    """Return a database connection (pooled for PG)."""
     if USE_PG:
-        conn = psycopg2.connect(DATABASE_URL)
-        return conn
+        return _get_pool().getconn()
     else:
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         return conn
+
+
+def _return_conn(conn):
+    """Return a PG connection to the pool, or close SQLite."""
+    if USE_PG:
+        try:
+            _get_pool().putconn(conn)
+        except Exception:
+            try:
+                _return_conn(conn)
+            except Exception:
+                pass
+    else:
+        _return_conn(conn)
 
 
 def _cursor(conn):
@@ -215,7 +248,7 @@ def init_db():
                 )
                 conn.commit()
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 # ---------------------------------------------------------------------------
@@ -252,7 +285,7 @@ def create_user(email: str, password_hash: str) -> dict:
             ).fetchone()
             return dict(user)
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 def get_user_by_email(email: str) -> dict | None:
@@ -280,7 +313,7 @@ def get_user_by_email(email: str) -> dict | None:
             ).fetchone()
             return dict(row) if row else None
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 def get_user_by_id(user_id: int) -> dict | None:
@@ -335,7 +368,7 @@ def get_user_by_id(user_id: int) -> dict | None:
                 result["cached_tax_guide"] = None
             return result
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 def save_user_profile(user_id: int, profile_dict: dict) -> None:
@@ -358,7 +391,7 @@ def save_user_profile(user_id: int, profile_dict: dict) -> None:
             )
             conn.commit()
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 def save_cached_timeline(user_id: int, timeline_response: dict) -> None:
@@ -381,7 +414,7 @@ def save_cached_timeline(user_id: int, timeline_response: dict) -> None:
             )
             conn.commit()
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 def increment_credits_used(user_id: int) -> int:
@@ -410,7 +443,7 @@ def increment_credits_used(user_id: int) -> int:
             ).fetchone()
             return dict(row)["credits_used"]
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 def save_cached_tax_guide(user_id: int, tax_guide: dict) -> None:
@@ -433,7 +466,7 @@ def save_cached_tax_guide(user_id: int, tax_guide: dict) -> None:
             )
             conn.commit()
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 # ---------------------------------------------------------------------------
@@ -480,7 +513,7 @@ def save_timeline(user_id: int, user_input: dict, timeline_response: dict) -> di
             result["timeline_response"] = json.loads(result["timeline_response"])
             return result
     finally:
-        conn.close()
+        _return_conn(conn)
 
 
 def get_user_timelines(user_id: int) -> list[dict]:
@@ -513,4 +546,4 @@ def get_user_timelines(user_id: int) -> list[dict]:
             results.append(d)
         return results
     finally:
-        conn.close()
+        _return_conn(conn)

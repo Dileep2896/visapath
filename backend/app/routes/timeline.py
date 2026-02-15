@@ -2,7 +2,7 @@
 
 import logging
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.services.ai_timeline_generator import generate_ai_timeline
 from app.ai_rate_limit import (
     check_ai_rate_limit,
@@ -40,22 +40,22 @@ async def get_credits(user: dict = Depends(get_current_user)):
 
 
 class TimelineRequest(BaseModel):
-    visa_type: str
-    degree_level: str = "Master's"
+    visa_type: str = Field(max_length=20)
+    degree_level: str = Field(default="Master's", max_length=50)
     is_stem: bool = False
-    program_start: str | None = None
-    expected_graduation: str | None = None
-    cpt_months_used: int = 0
+    program_start: str | None = Field(default=None, max_length=10)
+    expected_graduation: str | None = Field(default=None, max_length=10)
+    cpt_months_used: int = Field(default=0, ge=0, le=36)
     currently_employed: bool = False
-    career_goal: str = "stay_us_longterm"
-    country: str = "Rest of World"
+    career_goal: str = Field(default="stay_us_longterm", max_length=50)
+    country: str = Field(default="Rest of World", max_length=100)
     # Enhanced fields
-    major_field: str = ""
-    opt_status: str = "none"  # "none" | "applied" | "active" | "expired"
+    major_field: str = Field(default="", max_length=200)
+    opt_status: str = Field(default="none", max_length=20)
     program_extended: bool = False
-    original_graduation: str = ""
-    h1b_attempts: int = 0
-    unemployment_days: int = 0
+    original_graduation: str = Field(default="", max_length=10)
+    h1b_attempts: int = Field(default=0, ge=0, le=10)
+    unemployment_days: int = Field(default=0, ge=0, le=365)
     has_job_offer: bool = False
 
 

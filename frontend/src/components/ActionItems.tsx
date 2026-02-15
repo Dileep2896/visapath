@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { CheckCircle, Circle, Calendar } from 'lucide-react';
 import type { TimelineEvent } from '../types';
 
@@ -33,8 +33,8 @@ const urgencyBadge: Record<string, { bg: string; text: string; label: string }> 
 export default function ActionItems({ events }: ActionItemsProps) {
   const [checked, setChecked] = useState<Set<string>>(new Set());
 
-  // Extract action items from future events only
-  const items: ActionEntry[] = events
+  // Extract action items from future events only (memoized)
+  const items: ActionEntry[] = useMemo(() => events
     .filter(e => !e.is_past && e.action_items.length > 0)
     .sort((a, b) => (urgencyOrder[a.urgency] ?? 4) - (urgencyOrder[b.urgency] ?? 4))
     .flatMap(event =>
@@ -44,7 +44,7 @@ export default function ActionItems({ events }: ActionItemsProps) {
         date: event.date,
         urgency: event.urgency,
       }))
-    );
+    ), [events]);
 
   function toggleCheck(key: string) {
     setChecked(prev => {
@@ -105,6 +105,9 @@ export default function ActionItems({ events }: ActionItemsProps) {
                 <button
                   onClick={() => toggleCheck(key)}
                   className="mt-0.5 shrink-0 cursor-pointer"
+                  aria-label={isChecked ? `Unmark "${item.task}" as done` : `Mark "${item.task}" as done`}
+                  role="checkbox"
+                  aria-checked={isChecked}
                 >
                   {isChecked ? (
                     <CheckCircle size={20} className="text-teal-400" />

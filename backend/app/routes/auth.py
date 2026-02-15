@@ -24,14 +24,18 @@ class SaveProfileRequest(BaseModel):
     profile: dict
 
 
-@router.post("/auth/register", dependencies=[Depends(rate_limit_auth)])
+@router.post("/auth/register", status_code=201, dependencies=[Depends(rate_limit_auth)])
 async def register(request: AuthRequest):
     if not request.email or not request.password:
         raise HTTPException(status_code=400, detail="Email and password required")
     if not validate_email(request.email):
         raise HTTPException(status_code=400, detail="Invalid email format")
-    if len(request.password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    if len(request.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    if not any(c.isdigit() for c in request.password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one number")
+    if not any(c.isalpha() for c in request.password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one letter")
     try:
         result = register_user(request.email, request.password)
         return result

@@ -1,21 +1,22 @@
 """AI Chat API route."""
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 from app.services.gemini_service import chat_with_context
 from app.services.rag_service import retrieve_context
 from app.ai_rate_limit import check_ai_rate_limit, record_ai_request, mark_exhausted, AIRateLimitExceeded
+from app.dependencies import get_current_user
 
 router = APIRouter()
 
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = Field(min_length=1, max_length=5000)
     user_context: dict | None = None
 
 
 @router.post("/chat")
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, user: dict = Depends(get_current_user)):
     try:
         check_ai_rate_limit()
     except AIRateLimitExceeded as e:
