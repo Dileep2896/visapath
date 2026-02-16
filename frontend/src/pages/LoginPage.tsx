@@ -8,6 +8,7 @@ export default function LoginPage() {
   const { user, userInput, draftStep, setUser, setUserInput, setTimelineData, setDraftStep, setCachedTaxGuide } = useAuth();
 
   if (user) {
+    if (user.is_admin) return <Navigate to="/admin" replace />;
     if (!userInput || draftStep !== undefined) return <Navigate to="/onboarding" replace />;
     return <Navigate to="/timeline" replace />;
   }

@@ -3,11 +3,12 @@
 import json
 import logging
 import os
-import google.generativeai as genai
-
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+from google import genai
+from google.genai import types
 
 logger = logging.getLogger(__name__)
+
+_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Model fallback chain: try the best model first, fall back on rate limit.
 # gemini-2.5-flash  →  20 RPD free tier  (best quality)
@@ -36,13 +37,6 @@ def _is_rate_limit(exc: Exception) -> bool:
     return "429" in str(exc) or "ResourceExhausted" in type(exc).__name__
 
 
-# Build chat models for each model in the chain
-_chat_models = [
-    genai.GenerativeModel(model_name=m, system_instruction=SYSTEM_INSTRUCTION)
-    for m in MODEL_CHAIN
-]
-
-
 async def chat_with_context(
     message: str,
     user_context: dict | None = None,
@@ -68,17 +62,22 @@ async def chat_with_context(
     full_prompt = "\n\n".join(prompt_parts)
 
     # Try each model in the chain
-    for model in _chat_models:
+    for i, model_name in enumerate(MODEL_CHAIN):
         try:
-            response = await model.generate_content_async(full_prompt)
+            response = await _client.aio.models.generate_content(
+                model=model_name,
+                contents=full_prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM_INSTRUCTION,
+                ),
+            )
             return response.text
         except Exception as e:
-            if _is_rate_limit(e) and model is not _chat_models[-1]:
-                logger.warning("Chat rate-limited on %s, falling back", model.model_name)
+            if _is_rate_limit(e) and i < len(MODEL_CHAIN) - 1:
+                logger.warning("Chat rate-limited on %s, falling back", model_name)
                 continue
             raise
 
-    # Should not reach here, but just in case
     raise RuntimeError("All models exhausted")
 
 
@@ -92,21 +91,21 @@ async def generate_structured_json_async(
     Uses response_mime_type="application/json" and low temperature
     for deterministic, structured output.
     """
-    for model_name in MODEL_CHAIN:
+    for i, model_name in enumerate(MODEL_CHAIN):
         try:
-            structured_model = genai.GenerativeModel(
-                model_name=model_name,
-                system_instruction=system_instruction,
-                generation_config=genai.GenerationConfig(
+            response = await _client.aio.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
                     response_mime_type="application/json",
                     temperature=0.1,
                 ),
             )
-            response = await structured_model.generate_content_async(prompt)
             logger.info("Structured JSON generated using %s", model_name)
             return json.loads(response.text)
         except Exception as e:
-            if _is_rate_limit(e) and model_name != MODEL_CHAIN[-1]:
+            if _is_rate_limit(e) and i < len(MODEL_CHAIN) - 1:
                 logger.warning("Rate-limited on %s, falling back to next model", model_name)
                 continue
             raise

@@ -1,11 +1,15 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import OnboardingForm from '../components/OnboardingForm';
 import type { UserInput } from '../types';
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
-  const { loading, userInput, isEditingProfile, draftStep, handleOnboardingSubmit, handleSaveDraft } = useAuth();
+  const { user, loading, userInput, isEditingProfile, draftStep, handleOnboardingSubmit, handleSaveDraft } = useAuth();
+
+  if (user?.is_admin) {
+    return <Navigate to="/admin" replace />;
+  }
 
   async function onSubmit(data: UserInput) {
     try {
