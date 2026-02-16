@@ -65,11 +65,11 @@ def _return_conn(conn):
             _get_pool().putconn(conn)
         except Exception:
             try:
-                _return_conn(conn)
+                conn.close()
             except Exception:
                 pass
     else:
-        _return_conn(conn)
+        conn.close()
 
 
 def _cursor(conn):
@@ -442,6 +442,34 @@ def increment_credits_used(user_id: int) -> int:
                 (user_id,),
             ).fetchone()
             return dict(row)["credits_used"]
+    finally:
+        _return_conn(conn)
+
+
+def try_consume_credit(user_id: int, limit: int) -> bool:
+    """Atomically increment credits_used only if under the limit. Returns True if credit was consumed."""
+    conn = get_db()
+    try:
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(
+                f"UPDATE users SET credits_used = credits_used + 1 "
+                f"WHERE id = {PH} AND credits_used < {PH} "
+                f"RETURNING credits_used",
+                (user_id, limit),
+            )
+            row = cur.fetchone()
+            conn.commit()
+            cur.close()
+            return row is not None
+        else:
+            cursor = conn.execute(
+                f"UPDATE users SET credits_used = credits_used + 1 "
+                f"WHERE id = {PH} AND credits_used < {PH}",
+                (user_id, limit),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
     finally:
         _return_conn(conn)
 

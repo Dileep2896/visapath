@@ -147,7 +147,7 @@ export default function TimelinePage() {
           </span>
         )}
         <div className="flex-1" />
-        {user && credits && (
+        {user && credits && credits.remaining >= 0 && (
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${
             credits.remaining > 0
               ? 'bg-teal-500/10 border-teal-500/20 text-teal-400'

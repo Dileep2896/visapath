@@ -32,10 +32,11 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 def create_token(user_id: int) -> str:
     """Create a JWT token for a user."""
+    now = datetime.now(timezone.utc)
     payload = {
         "sub": str(user_id),
-        "exp": datetime.now(timezone.utc) + timedelta(hours=TOKEN_EXPIRY_HOURS),
-        "iat": datetime.now(timezone.utc),
+        "exp": now + timedelta(hours=TOKEN_EXPIRY_HOURS),
+        "iat": now,
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -62,7 +63,13 @@ def register_user(email: str, password: str) -> dict:
         raise ValueError("Email already registered")
 
     pw_hash = hash_password(password)
-    user = create_user(email, pw_hash)
+    try:
+        user = create_user(email, pw_hash)
+    except Exception as e:
+        # Handle race condition: concurrent registration with same email
+        if "unique" in str(e).lower() or "duplicate" in str(e).lower():
+            raise ValueError("Email already registered")
+        raise
     token = create_token(user["id"])
     return {"id": user["id"], "email": user["email"], "token": token}
 

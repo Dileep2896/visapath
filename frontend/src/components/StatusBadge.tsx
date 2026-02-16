@@ -23,9 +23,11 @@ export default function StatusBadge({ visa, workAuth, daysUntilDeadline, nextDea
         {daysUntilDeadline !== undefined && nextDeadline && (
           <div className="text-right">
             <p className={`text-3xl font-bold font-heading tabular-nums ${urgencyColor}`}>
-              {daysUntilDeadline}
+              {daysUntilDeadline < 0 ? Math.abs(daysUntilDeadline) : daysUntilDeadline}
             </p>
-            <p className="text-xs text-slate-500">days until</p>
+            <p className="text-xs text-slate-500">
+              {daysUntilDeadline < 0 ? 'days past' : 'days until'}
+            </p>
             <p className="text-xs text-slate-400 max-w-[150px] text-right">{nextDeadline}</p>
           </div>
         )}

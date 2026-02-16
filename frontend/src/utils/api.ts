@@ -38,7 +38,13 @@ async function authFetch(url: string, options: RequestInit = {}, timeout = DEFAU
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  return fetchWithTimeout(url, { ...options, headers }, timeout);
+  const res = await fetchWithTimeout(url, { ...options, headers }, timeout);
+  // Global 401 handling — session expired
+  if (res.status === 401) {
+    clearToken();
+    throw new Error('Session expired — please log in again.');
+  }
+  return res;
 }
 
 // --- Auth API ---
@@ -85,32 +91,45 @@ export async function getMe(): Promise<{ id: number; email: string; profile: Use
 }
 
 export async function saveProfile(profile: UserInput): Promise<void> {
-  const res = await authFetch(`${API_BASE}/auth/profile`, {
-    method: 'PUT',
-    body: JSON.stringify({ profile }),
-  });
-  if (!res.ok) {
-    console.warn('Failed to save profile:', res.status);
+  try {
+    const res = await authFetch(`${API_BASE}/auth/profile`, {
+      method: 'PUT',
+      body: JSON.stringify({ profile }),
+    });
+    if (!res.ok) {
+      console.warn('Failed to save profile:', res.status);
+    }
+  } catch (e) {
+    // Swallow session-expired errors for background saves
+    console.warn('Profile save failed:', e);
   }
 }
 
 export async function saveCachedTimeline(timelineResponse: TimelineResponse): Promise<void> {
-  const res = await authFetch(`${API_BASE}/auth/cached-timeline`, {
-    method: 'PUT',
-    body: JSON.stringify({ timeline_response: timelineResponse }),
-  });
-  if (!res.ok) {
-    console.warn('Failed to cache timeline:', res.status);
+  try {
+    const res = await authFetch(`${API_BASE}/auth/cached-timeline`, {
+      method: 'PUT',
+      body: JSON.stringify({ timeline_response: timelineResponse }),
+    });
+    if (!res.ok) {
+      console.warn('Failed to cache timeline:', res.status);
+    }
+  } catch (e) {
+    console.warn('Timeline cache save failed:', e);
   }
 }
 
 export async function saveCachedTaxGuide(taxGuide: Record<string, unknown>): Promise<void> {
-  const res = await authFetch(`${API_BASE}/auth/cached-tax-guide`, {
-    method: 'PUT',
-    body: JSON.stringify({ tax_guide: taxGuide }),
-  });
-  if (!res.ok) {
-    console.warn('Failed to cache tax guide:', res.status);
+  try {
+    const res = await authFetch(`${API_BASE}/auth/cached-tax-guide`, {
+      method: 'PUT',
+      body: JSON.stringify({ tax_guide: taxGuide }),
+    });
+    if (!res.ok) {
+      console.warn('Failed to cache tax guide:', res.status);
+    }
+  } catch (e) {
+    console.warn('Tax guide cache save failed:', e);
   }
 }
 
@@ -137,10 +156,10 @@ export async function getMyTimelines(): Promise<SavedTimeline[]> {
 export async function checkRateLimit(): Promise<{ allowed: boolean; remaining: number; limit: number }> {
   try {
     const res = await authFetch(`${API_BASE}/credits`);
-    if (!res.ok) return { allowed: true, remaining: 5, limit: 5 };
+    if (!res.ok) return { allowed: true, remaining: -1, limit: -1 }; // -1 = unknown
     return res.json();
   } catch {
-    return { allowed: true, remaining: 5, limit: 5 };
+    return { allowed: true, remaining: -1, limit: -1 }; // -1 = unknown, still allow attempt
   }
 }
 
@@ -162,9 +181,6 @@ export async function generateTimeline(input: UserInput): Promise<TimelineRespon
     const data = await res.json().catch(() => null);
     if (res.status === 429) {
       throw new Error(data?.detail || 'No credits remaining. You have 5 timeline generations.');
-    }
-    if (res.status === 401) {
-      throw new Error('Session expired — please log out and log back in.');
     }
     throw new Error(data?.detail || `Timeline generation failed (${res.status}). Please try again.`);
   }
@@ -199,7 +215,7 @@ export async function getTaxGuide(userContext: UserInput) {
   if (userContext.program_start) {
     const start = new Date(userContext.program_start);
     const now = new Date();
-    body.years_in_us = Math.max(1, Math.ceil((now.getTime() - start.getTime()) / (365.25 * 24 * 60 * 60 * 1000)));
+    body.years_in_us = Math.max(1, Math.round((now.getTime() - start.getTime()) / (365.25 * 24 * 60 * 60 * 1000)));
   }
 
   const res = await authFetch(`${API_BASE}/tax-guide`, {
@@ -211,9 +227,6 @@ export async function getTaxGuide(userContext: UserInput) {
       const data = await res.json().catch(() => null);
       throw new Error(data?.detail || 'Rate limit reached. Please wait and try again.');
     }
-    if (res.status === 401) {
-      throw new Error('Session expired — please log out and log back in.');
-    }
     throw new Error('Failed to get tax guide. Please try again.');
   }
   return res.json();
@@ -223,7 +236,7 @@ export async function getRequiredDocuments(step?: string) {
   const url = step
     ? `${API_BASE}/required-documents?step=${encodeURIComponent(step)}`
     : `${API_BASE}/required-documents`;
-  const res = await fetchWithTimeout(url);
+  const res = await authFetch(url);
   if (!res.ok) throw new Error('Failed to fetch documents');
   return res.json();
 }

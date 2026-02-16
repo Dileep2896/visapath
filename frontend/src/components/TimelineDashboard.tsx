@@ -91,7 +91,7 @@ export default function TimelineDashboard({ data }: TimelineDashboardProps) {
                         <p className="text-sm font-medium text-white">{event.title}</p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <p className="text-xs text-slate-400">
-                            {new Date(event.date).toLocaleDateString('en-US', {
+                            {new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', {
                               weekday: 'short',
                               month: 'short',
                               day: 'numeric',

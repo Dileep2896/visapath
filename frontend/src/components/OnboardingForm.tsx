@@ -120,7 +120,7 @@ function MajorPicker({ value, onChange }: { value: string; onChange: (v: string)
   }, []);
 
   const filtered = COMMON_MAJORS.filter(m =>
-    m.toLowerCase().includes((search || value).toLowerCase())
+    m.toLowerCase().includes(search.toLowerCase())
   );
 
   function select(major: string) {
@@ -140,8 +140,9 @@ function MajorPicker({ value, onChange }: { value: string; onChange: (v: string)
           ref={inputRef}
           type="text"
           value={open ? search : value}
-          onChange={e => { setSearch(e.target.value); onChange(e.target.value); if (!open) setOpen(true); }}
-          onFocus={() => setOpen(true)}
+          onChange={e => { setSearch(e.target.value); if (!open) setOpen(true); }}
+          onBlur={() => { if (search && !COMMON_MAJORS.includes(search)) onChange(search); }}
+          onFocus={() => { setSearch(value); setOpen(true); }}
           placeholder="Search or type your major..."
           className="w-full bg-navy-800 border border-navy-700 rounded-lg pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-teal-400 transition-colors"
         />

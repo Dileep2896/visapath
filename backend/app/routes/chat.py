@@ -39,7 +39,7 @@ async def chat(request: ChatRequest, user: dict = Depends(get_current_user)):
             mark_exhausted()
             raise HTTPException(
                 status_code=429,
-                detail="AI rate limit reached (20 requests/day on free tier). Please wait and try again.",
+                detail="AI rate limit reached. Please wait and try again.",
             )
         raise HTTPException(status_code=502, detail="Failed to get AI response. Please try again.")
 

@@ -55,9 +55,11 @@ export default function ActionItems({ events }: ActionItemsProps) {
     });
   }
 
-  const completedCount = checked.size;
+  // Only count checked items that still exist in the current items list
+  const validKeys = new Set(items.map((_, idx) => `${items[idx].eventTitle}-${items[idx].task}-${idx}`));
+  const completedCount = [...checked].filter(k => validKeys.has(k)).length;
   const totalCount = items.length;
-  const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  const progress = totalCount > 0 ? Math.min((completedCount / totalCount) * 100, 100) : 0;
 
   return (
     <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6">
@@ -90,7 +92,7 @@ export default function ActionItems({ events }: ActionItemsProps) {
       ) : (
         <div className="bg-navy-900 rounded-xl border border-navy-700 divide-y divide-navy-700">
           {items.map((item, idx) => {
-            const key = `${item.eventTitle}-${idx}`;
+            const key = `${item.eventTitle}-${item.task}-${idx}`;
             const isChecked = checked.has(key);
             const badge = urgencyBadge[item.urgency] || urgencyBadge.none;
 
@@ -124,7 +126,7 @@ export default function ActionItems({ events }: ActionItemsProps) {
                   <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                     <span className="flex items-center gap-1 text-xs text-slate-500">
                       <Calendar size={10} />
-                      {new Date(item.date).toLocaleDateString('en-US', {
+                      {new Date(item.date + 'T00:00:00').toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',

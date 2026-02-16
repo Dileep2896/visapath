@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SlidersHorizontal, ChevronDown, RotateCcw, Zap } from 'lucide-react';
 import type { UserInput } from '../types';
 import DatePicker from './DatePicker';
@@ -14,6 +14,13 @@ interface WhatIfPanelProps {
 export default function WhatIfPanel({ baseProfile, onSimulate, onReset, loading, isModified }: WhatIfPanelProps) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<UserInput>({ ...baseProfile });
+
+  // Sync draft when baseProfile changes (e.g. profile edit)
+  useEffect(() => {
+    if (!isModified) {
+      setDraft({ ...baseProfile });
+    }
+  }, [baseProfile, isModified]);
 
   function update<K extends keyof UserInput>(key: K, value: UserInput[K]) {
     setDraft(prev => ({ ...prev, [key]: value }));

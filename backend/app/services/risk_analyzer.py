@@ -84,8 +84,8 @@ def analyze_risks(user_input: dict, timeline_events: list[dict]) -> list[dict]:
                 recommendation="Contact your DSO to confirm OPT application status."
             ))
 
-    # Non-STEM on OPT — shorter window
-    if visa_type in ("F-1", "OPT") and not is_stem:
+    # Non-STEM on OPT — shorter window (only relevant if staying)
+    if visa_type in ("F-1", "OPT") and not is_stem and career_goal == "stay_us_longterm":
         risks.append(_risk(
             "non_stem_limited", "info",
             "As a non-STEM student, you are only eligible for 12 months of OPT "
@@ -182,7 +182,8 @@ def analyze_risks(user_input: dict, timeline_events: list[dict]) -> list[dict]:
 
     # 4. No job offer with approaching OPT deadline
     if not has_job_offer and visa_type in ("F-1", "OPT") and graduation:
-        opt_end = graduation + timedelta(days=365)
+        # OPT start can be up to 60 days after graduation; 12 months from start
+        opt_end = graduation + timedelta(days=60 + 365)
         days_to_opt_end = (opt_end - today).days
         if 0 < days_to_opt_end <= 120:
             severity = "critical" if days_to_opt_end <= 60 else "high"
@@ -197,21 +198,6 @@ def analyze_risks(user_input: dict, timeline_events: list[dict]) -> list[dict]:
                        "Explore other visa options or consider further education.")
                 )
             ))
-
-    # 5. Non-STEM with limited post-graduation options
-    if not is_stem and visa_type in ("F-1", "OPT") and career_goal == "stay_us_longterm":
-        risks.append(_risk(
-            "non_stem_limited_options", "warning",
-            "As a non-STEM student, you only have 12 months of OPT with no extension option. "
-            "This gives you a single H-1B lottery attempt during your OPT period. "
-            "If not selected, maintaining legal status becomes challenging.",
-            recommendation=(
-                "Start H-1B sponsorship discussions with employers immediately. "
-                "Consider pursuing a STEM-designated program for additional OPT time. "
-                "Look into cap-exempt H-1B employers (universities, nonprofits). "
-                "Explore O-1 or other visa categories as alternatives."
-            )
-        ))
 
     # Sort by severity
     severity_order = {"critical": 0, "high": 1, "warning": 2, "info": 3}

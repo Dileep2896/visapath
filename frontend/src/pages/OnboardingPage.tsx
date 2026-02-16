@@ -8,8 +8,12 @@ export default function OnboardingPage() {
   const { loading, userInput, isEditingProfile, draftStep, handleOnboardingSubmit, handleSaveDraft } = useAuth();
 
   async function onSubmit(data: UserInput) {
-    await handleOnboardingSubmit(data);
-    navigate('/timeline');
+    try {
+      await handleOnboardingSubmit(data);
+      navigate('/timeline');
+    } catch {
+      // Stay on onboarding page — error is displayed via timelineError state
+    }
   }
 
   return (

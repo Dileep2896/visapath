@@ -71,7 +71,7 @@ def check_ai_rate_limit() -> None:
     status = get_ai_rate_status()
     if not status["allowed"]:
         raise AIRateLimitExceeded(
-            "AI rate limit reached (20 requests/day on free tier). "
+            "AI rate limit reached."
             "Please wait and try again."
         )
 

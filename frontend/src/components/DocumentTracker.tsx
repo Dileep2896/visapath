@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FileText, CheckCircle, Circle, ExternalLink, AlertCircle } from 'lucide-react';
 import { getRequiredDocuments } from '../utils/api';
 import type { DocumentItem } from '../types';
@@ -17,6 +17,7 @@ export default function DocumentTracker() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [fetchKey, setFetchKey] = useState(0);
 
   // Load saved checks from localStorage
   function loadChecked(step: string): Set<string> {
@@ -32,7 +33,7 @@ export default function DocumentTracker() {
     localStorage.setItem(`visapath_docs_${step}`, JSON.stringify([...items]));
   }
 
-  useEffect(() => {
+  const fetchDocuments = useCallback(() => {
     setLoading(true);
     setError(false);
     getRequiredDocuments(activeStep)
@@ -46,6 +47,10 @@ export default function DocumentTracker() {
       })
       .finally(() => setLoading(false));
   }, [activeStep]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments, fetchKey]);
 
   function toggleCheck(name: string) {
     setChecked(prev => {
@@ -107,7 +112,7 @@ export default function DocumentTracker() {
             <p className="text-slate-300 font-medium">Failed to load documents</p>
             <p className="text-sm text-slate-500 mt-1">Make sure the backend server is running.</p>
             <button
-              onClick={() => setActiveStep(activeStep)}
+              onClick={() => setFetchKey(k => k + 1)}
               className="mt-3 text-sm text-teal-400 hover:text-teal-300 transition-colors cursor-pointer"
             >
               Try again

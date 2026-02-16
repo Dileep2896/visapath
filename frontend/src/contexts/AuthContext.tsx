@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { _draft_step, ...profileData } = me.profile as UserInput & { _draft_step?: number };
         setUserInput(profileData as UserInput);
 
-        if (_draft_step) {
+        if (_draft_step !== undefined) {
           setDraftStep(_draft_step);
           setAuthChecked(true);
           return;
@@ -152,6 +152,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsEditingProfile(false);
     setTimelineError(null);
     setCachedTaxGuide(null);
+    setWhatIfModified(false);
+    setGenerating(false);
+    setSimulating(false);
+    setSaving(false);
+    setLoading(false);
   }
 
   function resetToOnboarding() {
@@ -175,9 +180,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Pre-check rate limit before expensive AI call
     const rl = await checkRateLimit();
     if (!rl.allowed) {
-      setTimelineError(`Rate limit reached \u2014 ${rl.limit} AI requests/day. Please wait and try again.`);
+      const msg = `Rate limit reached \u2014 ${rl.limit} AI requests/day. Please wait and try again.`;
+      setTimelineError(msg);
       saveProfile(data).catch(() => {});
-      return;
+      throw new Error(msg);
     }
 
     setLoading(true);
@@ -192,6 +198,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const msg = err instanceof Error ? err.message : 'Failed to generate timeline. Please try again.';
       setTimelineError(msg);
       saveProfile(data).catch(() => {});
+      throw err; // Re-throw so caller knows generation failed
     } finally {
       setLoading(false);
       setGenerating(false);
@@ -233,6 +240,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function handleWhatIfReset() {
     if (!userInput) return;
+
+    const rl = await checkRateLimit();
+    if (!rl.allowed) {
+      toast('Rate limit reached. Please wait and try again.', 'error');
+      return;
+    }
+
     setSimulating(true);
     try {
       const result = await generateTimeline(userInput);

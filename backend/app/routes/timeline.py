@@ -12,7 +12,7 @@ from app.ai_rate_limit import (
     AIRateLimitExceeded,
 )
 from app.dependencies import get_current_user
-from app.database import increment_credits_used
+from app.database import try_consume_credit
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +62,9 @@ class TimelineRequest(BaseModel):
 @router.post("/generate-timeline")
 async def create_timeline(request: TimelineRequest, user: dict = Depends(get_current_user)):
     logger.info("Timeline request from user %s (email: %s)", user["id"], user["email"])
-    # Check per-user credits
-    credits_used = user.get("credits_used", 0) or 0
-    if credits_used >= CREDIT_LIMIT:
+
+    # Atomically consume a credit — fails if already at limit
+    if not try_consume_credit(user["id"], CREDIT_LIMIT):
         raise HTTPException(
             status_code=429,
             detail=f"You've used all {CREDIT_LIMIT} timeline credits. Contact support for more.",
@@ -81,7 +81,6 @@ async def create_timeline(request: TimelineRequest, user: dict = Depends(get_cur
     try:
         result = await generate_ai_timeline(user_input)
         record_ai_request()
-        increment_credits_used(user["id"])
     except Exception as e:
         logger.exception("Timeline generation failed")
         detail = str(e)

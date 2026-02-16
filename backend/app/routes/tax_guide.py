@@ -25,8 +25,19 @@ produce personalized tax filing guidance. Do not provide legal or tax advice —
 frame everything as general informational guidance. Use only the reference data provided."""
 
 
+TAX_CREDIT_LIMIT = 5
+
+
 @router.post("/tax-guide")
 async def tax_guide(request: TaxGuideRequest, user: dict = Depends(get_current_user)):
+    # Per-user credit check (shared limit with timeline)
+    credits_used = user.get("credits_used", 0) or 0
+    if credits_used >= TAX_CREDIT_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail=f"You've used all {TAX_CREDIT_LIMIT} AI credits. Contact support for more.",
+        )
+
     try:
         check_ai_rate_limit()
     except AIRateLimitExceeded as e:
@@ -41,9 +52,20 @@ async def tax_guide(request: TaxGuideRequest, user: dict = Depends(get_current_u
 
     rag_context = await retrieve_context(query, k=6)
 
-    # Determine residency and FICA status
-    is_nonresident = request.years_in_us <= 5 if request.visa_type == "F-1" else request.years_in_us <= 2
-    fica_exempt = is_nonresident
+    # Determine residency and FICA status based on visa type
+    # F-1/OPT: exempt from SPT for first 5 calendar years → generally nonresident
+    # J-1 students: exempt for first 5 years; J-1 scholars/researchers: exempt for first 2 years
+    # H-1B, L-1, H-4: subject to SPT from day 1 → generally resident if 183+ days
+    if request.visa_type in ("F-1", "OPT"):
+        is_nonresident = request.years_in_us <= 5
+        fica_exempt = is_nonresident
+    elif request.visa_type == "J-1":
+        is_nonresident = request.years_in_us <= 2  # conservative (scholar rule)
+        fica_exempt = is_nonresident
+    else:
+        # H-1B, L-1, H-4 etc. — subject to SPT, generally resident aliens
+        is_nonresident = False
+        fica_exempt = False
 
     prompt = f"""\
 [STUDENT PROFILE]
@@ -89,7 +111,7 @@ Return ONLY this JSON object — no markdown, no commentary."""
             mark_exhausted()
             raise HTTPException(
                 status_code=429,
-                detail="AI rate limit reached (20 requests/day on free tier). Please wait and try again.",
+                detail="AI rate limit reached. Please wait and try again.",
             )
         raise HTTPException(status_code=502, detail="Failed to generate tax guide. Please try again.")
 

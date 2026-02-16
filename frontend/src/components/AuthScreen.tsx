@@ -79,11 +79,6 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
     }
   }
 
-  function switchMode() {
-    setMode(mode === 'login' ? 'register' : 'login');
-    setError('');
-  }
-
   return (
     <div className="min-h-screen flex">
       {/* Left panel — branding & features (hidden on mobile) */}
@@ -175,7 +170,7 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
           {/* Mode toggle tabs */}
           <div className="flex bg-navy-900 rounded-xl p-1 border border-navy-700 mb-8">
             <button
-              onClick={() => switchMode()}
+              onClick={() => { setMode('login'); setError(''); }}
               className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
                 mode === 'login'
                   ? 'bg-teal-400 text-navy-950 shadow-lg shadow-teal-400/20'
@@ -185,7 +180,7 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
               Sign In
             </button>
             <button
-              onClick={() => switchMode()}
+              onClick={() => { setMode('register'); setError(''); }}
               className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
                 mode === 'register'
                   ? 'bg-teal-400 text-navy-950 shadow-lg shadow-teal-400/20'

@@ -300,7 +300,7 @@ def _validate_response(data: dict) -> dict | None:
         _validate_event(ev, today) for ev in raw_events
     ) if e is not None]
 
-    if not events:
+    if len(events) < 3:
         return None
 
     raw_risks = data.get("risk_alerts")
@@ -369,7 +369,7 @@ async def generate_ai_timeline(user_input: dict) -> dict:
     logger.error("AI timeline generation failed after %d attempts", MAX_RETRIES)
     if last_error and ("429" in last_error or "ResourceExhausted" in last_error):
         raise RuntimeError(
-            "AI rate limit reached (20 requests/day on free tier). "
+            "AI rate limit reached."
             "Please wait and try again."
         )
     raise RuntimeError(f"Timeline generation failed: {last_error}")
