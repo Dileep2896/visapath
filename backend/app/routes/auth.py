@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from app.services.auth_service import register_user, login_user, validate_email
 from app.dependencies import get_current_user
-from app.database import save_timeline, get_user_timelines, save_user_profile, save_cached_timeline, save_cached_tax_guide
+from app.database import save_timeline, get_user_timelines, save_user_profile, save_cached_timeline, save_cached_tax_guide, get_all_users
 from app.rate_limit import rate_limit_auth
 
 router = APIRouter()
@@ -112,3 +112,10 @@ async def save_user_timeline(
 async def my_timelines(user: dict = Depends(get_current_user)):
     timelines = get_user_timelines(user["id"])
     return {"timelines": timelines}
+
+
+@router.get("/admin/users")
+async def admin_list_users(user: dict = Depends(get_current_user)):
+    """List all users (requires authentication)."""
+    users = get_all_users()
+    return {"users": users, "total": len(users)}

@@ -288,6 +288,33 @@ def create_user(email: str, password_hash: str) -> dict:
         _return_conn(conn)
 
 
+def get_all_users() -> list[dict]:
+    """Return all users (admin use only). Excludes password_hash."""
+    conn = get_db()
+    try:
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(
+                "SELECT id, email, credits_used, created_at FROM users ORDER BY id"
+            )
+            rows = cur.fetchall()
+            cur.close()
+            results = []
+            for row in rows:
+                d = dict(row)
+                if hasattr(d.get("created_at"), "isoformat"):
+                    d["created_at"] = d["created_at"].isoformat()
+                results.append(d)
+            return results
+        else:
+            rows = conn.execute(
+                "SELECT id, email, credits_used, created_at FROM users ORDER BY id"
+            ).fetchall()
+            return [dict(row) for row in rows]
+    finally:
+        _return_conn(conn)
+
+
 def get_user_by_email(email: str) -> dict | None:
     """Find a user by email."""
     conn = get_db()
