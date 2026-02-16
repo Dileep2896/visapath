@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { TimelineSkeleton } from '../components/Skeleton';
 import TimelineDashboard from '../components/TimelineDashboard';
 import WhatIfPanel from '../components/WhatIfPanel';
-import { Save, Check, Clock, RefreshCw, FileText, User, Map, Zap } from 'lucide-react';
+import { Save, Check, Clock, RefreshCw, FileText, User, Map, Zap, FlaskConical } from 'lucide-react';
 import { checkRateLimit } from '../utils/api';
 
 export default function TimelinePage() {
@@ -140,45 +140,57 @@ export default function TimelinePage() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between px-6 pt-4 gap-3">
-        {whatIfModified && (
-          <span className="text-xs text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full font-medium">
-            Viewing What-If Scenario
-          </span>
-        )}
-        <div className="flex-1" />
-        {user && credits && credits.remaining >= 0 && (
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border ${
-            credits.remaining > 0
-              ? 'bg-teal-500/10 border-teal-500/20 text-teal-400'
-              : 'bg-red-500/10 border-red-500/20 text-red-400'
-          }`}>
-            <Zap size={14} />
-            {credits.remaining}/{credits.limit} credits left
-          </div>
-        )}
-        {user && (
-          <button
-            onClick={handleSaveTimeline}
-            disabled={saving || saved}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border cursor-pointer disabled:opacity-50 bg-navy-800 border-navy-700 text-slate-300 hover:border-teal-400 hover:text-teal-400"
-          >
-            {saved ? (
-              <>
-                <Check size={16} className="text-teal-400" />
-                Saved
-              </>
-            ) : saving ? (
-              'Saving...'
-            ) : (
-              <>
-                <Save size={16} />
-                Save Timeline
-              </>
+      {/* Sticky header bar */}
+      <div className="sticky top-0 z-20 bg-navy-950/80 backdrop-blur-lg border-b border-navy-800/60">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 max-w-3xl mx-auto gap-3">
+          {/* Left: what-if badge */}
+          <div className="flex items-center gap-2 min-w-0">
+            {whatIfModified && (
+              <span className="flex items-center gap-1.5 text-xs text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full font-medium border border-amber-500/20">
+                <FlaskConical size={12} />
+                What-If Scenario
+              </span>
             )}
-          </button>
-        )}
+          </div>
+
+          {/* Right: credits + save */}
+          <div className="flex items-center gap-2 shrink-0">
+            {user && credits && credits.remaining >= 0 && (
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium border ${
+                credits.remaining > 0
+                  ? 'bg-teal-500/10 border-teal-500/20 text-teal-400'
+                  : 'bg-red-500/10 border-red-500/20 text-red-400'
+              }`}>
+                <Zap size={12} />
+                {credits.remaining}/{credits.limit}
+              </div>
+            )}
+            {user && (
+              <button
+                onClick={handleSaveTimeline}
+                disabled={saving || saved}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border cursor-pointer disabled:opacity-50 bg-navy-800 border-navy-700 text-slate-300 hover:border-teal-400 hover:text-teal-400"
+              >
+                {saved ? (
+                  <>
+                    <Check size={14} className="text-teal-400" />
+                    Saved
+                  </>
+                ) : saving ? (
+                  'Saving...'
+                ) : (
+                  <>
+                    <Save size={14} />
+                    Save
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
         {userInput && (
           <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-4">

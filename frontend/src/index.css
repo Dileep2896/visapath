@@ -228,7 +228,7 @@ input:-webkit-autofill:active {
   box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
 }
 
-/* Glowing timeline vertical line */
+/* Glowing timeline vertical line (legacy) */
 .timeline-line {
   background: linear-gradient(
     to bottom,
@@ -238,6 +238,54 @@ input:-webkit-autofill:active {
     var(--color-navy-700) 100%
   );
   box-shadow: 0 0 8px rgba(0, 212, 170, 0.2);
+}
+
+/* Enhanced timeline line — thicker with gradient glow */
+.timeline-line-enhanced {
+  background: linear-gradient(
+    to bottom,
+    var(--color-navy-700) 0%,
+    rgba(0, 212, 170, 0.3) 15%,
+    var(--color-teal-400) 40%,
+    var(--color-teal-400) 55%,
+    rgba(0, 212, 170, 0.3) 80%,
+    var(--color-navy-700) 100%
+  );
+  box-shadow: 0 0 12px rgba(0, 212, 170, 0.15), 0 0 4px rgba(0, 212, 170, 0.1);
+}
+
+/* Countdown ring draw-in animation */
+@keyframes countdownDraw {
+  from {
+    stroke-dashoffset: 238.76;
+  }
+}
+
+.countdown-ring {
+  animation: countdownDraw 1.2s ease-out forwards;
+  transition: stroke-dashoffset 0.8s ease-out;
+}
+
+/* Current dot animated glow ring */
+.current-dot-glow {
+  box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.4);
+  animation: pulseGlow 2s ease-in-out infinite, dotAppear 0.5s ease-out;
+}
+
+@keyframes dotAppear {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Month divider */
+.month-divider {
+  position: relative;
 }
 
 /* View transition */
