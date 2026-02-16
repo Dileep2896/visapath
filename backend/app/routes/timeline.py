@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-CREDIT_LIMIT = 5
+DEFAULT_CREDIT_LIMIT = 5
 
 
 @router.get("/rate-limit-status")
@@ -31,11 +31,12 @@ async def rate_limit_status():
 async def get_credits(user: dict = Depends(get_current_user)):
     """Return the user's credit usage."""
     used = user.get("credits_used", 0) or 0
+    limit = user.get("credit_limit", DEFAULT_CREDIT_LIMIT) or DEFAULT_CREDIT_LIMIT
     return {
         "used": used,
-        "limit": CREDIT_LIMIT,
-        "remaining": max(CREDIT_LIMIT - used, 0),
-        "allowed": used < CREDIT_LIMIT,
+        "limit": limit,
+        "remaining": max(limit - used, 0),
+        "allowed": used < limit,
     }
 
 
@@ -64,10 +65,11 @@ async def create_timeline(request: TimelineRequest, user: dict = Depends(get_cur
     logger.info("Timeline request from user %s (email: %s)", user["id"], user["email"])
 
     # Atomically consume a credit — fails if already at limit
-    if not try_consume_credit(user["id"], CREDIT_LIMIT):
+    limit = user.get("credit_limit", DEFAULT_CREDIT_LIMIT) or DEFAULT_CREDIT_LIMIT
+    if not try_consume_credit(user["id"], limit):
         raise HTTPException(
             status_code=429,
-            detail=f"You've used all {CREDIT_LIMIT} timeline credits. Contact support for more.",
+            detail=f"You've used all {limit} timeline credits. Contact support for more.",
         )
 
     # Fast-fail if we already know we're rate-limited (global Gemini limit)

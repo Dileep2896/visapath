@@ -25,17 +25,18 @@ produce personalized tax filing guidance. Do not provide legal or tax advice —
 frame everything as general informational guidance. Use only the reference data provided."""
 
 
-TAX_CREDIT_LIMIT = 5
+DEFAULT_CREDIT_LIMIT = 5
 
 
 @router.post("/tax-guide")
 async def tax_guide(request: TaxGuideRequest, user: dict = Depends(get_current_user)):
     # Per-user credit check (shared limit with timeline)
     credits_used = user.get("credits_used", 0) or 0
-    if credits_used >= TAX_CREDIT_LIMIT:
+    limit = user.get("credit_limit", DEFAULT_CREDIT_LIMIT) or DEFAULT_CREDIT_LIMIT
+    if credits_used >= limit:
         raise HTTPException(
             status_code=429,
-            detail=f"You've used all {TAX_CREDIT_LIMIT} AI credits. Contact support for more.",
+            detail=f"You've used all {limit} AI credits. Contact support for more.",
         )
 
     try:

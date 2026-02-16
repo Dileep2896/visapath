@@ -98,6 +98,8 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     profile TEXT,
     cached_timeline TEXT,
+    is_admin INTEGER NOT NULL DEFAULT 0,
+    credit_limit INTEGER NOT NULL DEFAULT 5,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -118,6 +120,8 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     profile TEXT,
     cached_timeline TEXT,
+    is_admin INTEGER NOT NULL DEFAULT 0,
+    credit_limit INTEGER NOT NULL DEFAULT 5,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 """
@@ -183,6 +187,25 @@ def init_db():
                 cur.execute("ALTER TABLE users ADD COLUMN credits_used INTEGER NOT NULL DEFAULT 0")
                 conn.commit()
 
+            # Migration: add is_admin column if missing
+            cur.execute(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'users' AND column_name = 'is_admin'"
+            )
+            if not cur.fetchone():
+                cur.execute("ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0")
+                conn.commit()
+
+            # Migration: add credit_limit column if missing
+            cur.execute(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'users' AND column_name = 'credit_limit'"
+            )
+            if not cur.fetchone():
+                cur.execute("ALTER TABLE users ADD COLUMN credit_limit INTEGER NOT NULL DEFAULT 5")
+                conn.commit()
+
+            # Seed demo user
             cur.execute(
                 f"SELECT id FROM users WHERE email = {PH}", ("demo@visapath.com",)
             )
@@ -195,6 +218,31 @@ def init_db():
                     ("demo@visapath.com", pw_hash),
                 )
                 conn.commit()
+
+            # Seed admin user
+            admin_email = os.environ.get("ADMIN_EMAIL")
+            admin_password = os.environ.get("ADMIN_PASSWORD")
+            if admin_email and admin_password:
+                cur.execute(
+                    f"SELECT id FROM users WHERE email = {PH}", (admin_email,)
+                )
+                existing_admin = cur.fetchone()
+                if not existing_admin:
+                    from app.services.auth_service import hash_password
+                    admin_hash = hash_password(admin_password)
+                    cur.execute(
+                        f"INSERT INTO users (email, password_hash, is_admin) VALUES ({PH}, {PH}, 1)",
+                        (admin_email, admin_hash),
+                    )
+                    conn.commit()
+                    logger.info("Admin user seeded: %s", admin_email)
+                else:
+                    # Ensure existing admin user has is_admin=1
+                    cur.execute(
+                        f"UPDATE users SET is_admin = 1 WHERE email = {PH}",
+                        (admin_email,),
+                    )
+                    conn.commit()
             cur.close()
         else:
             conn.executescript(_SQLITE_SCHEMA)
@@ -236,6 +284,25 @@ def init_db():
                 conn.execute("ALTER TABLE users ADD COLUMN credits_used INTEGER NOT NULL DEFAULT 0")
                 conn.commit()
 
+            # Migration: add is_admin column if missing
+            cols = [
+                row[1]
+                for row in conn.execute("PRAGMA table_info(users)").fetchall()
+            ]
+            if "is_admin" not in cols:
+                conn.execute("ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0")
+                conn.commit()
+
+            # Migration: add credit_limit column if missing
+            cols = [
+                row[1]
+                for row in conn.execute("PRAGMA table_info(users)").fetchall()
+            ]
+            if "credit_limit" not in cols:
+                conn.execute("ALTER TABLE users ADD COLUMN credit_limit INTEGER NOT NULL DEFAULT 5")
+                conn.commit()
+
+            # Seed demo user
             existing = conn.execute(
                 f"SELECT id FROM users WHERE email = {PH}", ("demo@visapath.com",)
             ).fetchone()
@@ -247,6 +314,29 @@ def init_db():
                     ("demo@visapath.com", pw_hash),
                 )
                 conn.commit()
+
+            # Seed admin user
+            admin_email = os.environ.get("ADMIN_EMAIL")
+            admin_password = os.environ.get("ADMIN_PASSWORD")
+            if admin_email and admin_password:
+                existing_admin = conn.execute(
+                    f"SELECT id FROM users WHERE email = {PH}", (admin_email,)
+                ).fetchone()
+                if not existing_admin:
+                    from app.services.auth_service import hash_password
+                    admin_hash = hash_password(admin_password)
+                    conn.execute(
+                        f"INSERT INTO users (email, password_hash, is_admin) VALUES ({PH}, {PH}, 1)",
+                        (admin_email, admin_hash),
+                    )
+                    conn.commit()
+                    logger.info("Admin user seeded: %s", admin_email)
+                else:
+                    conn.execute(
+                        f"UPDATE users SET is_admin = 1 WHERE email = {PH}",
+                        (admin_email,),
+                    )
+                    conn.commit()
     finally:
         _return_conn(conn)
 
@@ -295,7 +385,7 @@ def get_all_users() -> list[dict]:
         if USE_PG:
             cur = _cursor(conn)
             cur.execute(
-                "SELECT id, email, credits_used, created_at FROM users ORDER BY id"
+                "SELECT id, email, credits_used, credit_limit, is_admin, created_at FROM users ORDER BY id"
             )
             rows = cur.fetchall()
             cur.close()
@@ -308,7 +398,7 @@ def get_all_users() -> list[dict]:
             return results
         else:
             rows = conn.execute(
-                "SELECT id, email, credits_used, created_at FROM users ORDER BY id"
+                "SELECT id, email, credits_used, credit_limit, is_admin, created_at FROM users ORDER BY id"
             ).fetchall()
             return [dict(row) for row in rows]
     finally:
@@ -350,7 +440,7 @@ def get_user_by_id(user_id: int) -> dict | None:
         if USE_PG:
             cur = _cursor(conn)
             cur.execute(
-                f"SELECT id, email, profile, cached_timeline, cached_tax_guide, credits_used, created_at FROM users WHERE id = {PH}",
+                f"SELECT id, email, profile, cached_timeline, cached_tax_guide, credits_used, credit_limit, is_admin, created_at FROM users WHERE id = {PH}",
                 (user_id,),
             )
             row = cur.fetchone()
@@ -375,7 +465,7 @@ def get_user_by_id(user_id: int) -> dict | None:
             return result
         else:
             row = conn.execute(
-                f"SELECT id, email, profile, cached_timeline, cached_tax_guide, credits_used, created_at FROM users WHERE id = {PH}",
+                f"SELECT id, email, profile, cached_timeline, cached_tax_guide, credits_used, credit_limit, is_admin, created_at FROM users WHERE id = {PH}",
                 (user_id,),
             ).fetchone()
             if row is None:
@@ -600,5 +690,102 @@ def get_user_timelines(user_id: int) -> list[dict]:
                 d["created_at"] = d["created_at"].isoformat()
             results.append(d)
         return results
+    finally:
+        _return_conn(conn)
+
+
+# ---------------------------------------------------------------------------
+# Admin CRUD
+# ---------------------------------------------------------------------------
+def delete_user(user_id: int) -> bool:
+    """Delete a user by id. Returns True if a row was deleted."""
+    conn = get_db()
+    try:
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(f"DELETE FROM users WHERE id = {PH}", (user_id,))
+            deleted = cur.rowcount > 0
+            conn.commit()
+            cur.close()
+            return deleted
+        else:
+            cursor = conn.execute(f"DELETE FROM users WHERE id = {PH}", (user_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+    finally:
+        _return_conn(conn)
+
+
+def update_user_credits(user_id: int, credits: int) -> bool:
+    """Set credits_used for a user. Returns True if updated."""
+    conn = get_db()
+    try:
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(
+                f"UPDATE users SET credits_used = {PH} WHERE id = {PH}",
+                (credits, user_id),
+            )
+            updated = cur.rowcount > 0
+            conn.commit()
+            cur.close()
+            return updated
+        else:
+            cursor = conn.execute(
+                f"UPDATE users SET credits_used = {PH} WHERE id = {PH}",
+                (credits, user_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+    finally:
+        _return_conn(conn)
+
+
+def update_user_credit_limit(user_id: int, credit_limit: int) -> bool:
+    """Set credit_limit for a user. Returns True if updated."""
+    conn = get_db()
+    try:
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(
+                f"UPDATE users SET credit_limit = {PH} WHERE id = {PH}",
+                (credit_limit, user_id),
+            )
+            updated = cur.rowcount > 0
+            conn.commit()
+            cur.close()
+            return updated
+        else:
+            cursor = conn.execute(
+                f"UPDATE users SET credit_limit = {PH} WHERE id = {PH}",
+                (credit_limit, user_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+    finally:
+        _return_conn(conn)
+
+
+def update_user_email(user_id: int, email: str) -> bool:
+    """Update email for a user. Returns True if updated."""
+    conn = get_db()
+    try:
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(
+                f"UPDATE users SET email = {PH} WHERE id = {PH}",
+                (email, user_id),
+            )
+            updated = cur.rowcount > 0
+            conn.commit()
+            cur.close()
+            return updated
+        else:
+            cursor = conn.execute(
+                f"UPDATE users SET email = {PH} WHERE id = {PH}",
+                (email, user_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
     finally:
         _return_conn(conn)

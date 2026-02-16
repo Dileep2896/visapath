@@ -75,6 +75,7 @@ export interface AuthUser {
   id: number;
   email: string;
   token: string;
+  is_admin?: boolean;
 }
 
 export interface SavedTimeline {

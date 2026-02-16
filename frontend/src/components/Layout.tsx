@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Clock, MessageCircle, FileText, Map, Menu, X, ListChecks, LogOut, User, AlertTriangle, Receipt } from 'lucide-react';
+import { Clock, MessageCircle, FileText, Map, Menu, X, ListChecks, LogOut, User, AlertTriangle, Receipt, Shield } from 'lucide-react';
 import Logo from './Logo';
 
 interface LayoutProps {
@@ -9,6 +9,7 @@ interface LayoutProps {
   userEmail?: string;
   onLogout?: () => void;
   onReset?: () => void;
+  isAdmin?: boolean;
 }
 
 const navItems: { path: string; icon: typeof Clock; label: string }[] = [
@@ -21,8 +22,12 @@ const navItems: { path: string; icon: typeof Clock; label: string }[] = [
   { path: '/profile', icon: User, label: 'Profile' },
 ];
 
-export default function Layout({ showNav, children, userEmail, onLogout, onReset }: LayoutProps) {
+export default function Layout({ showNav, children, userEmail, onLogout, onReset, isAdmin }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const allNavItems = isAdmin
+    ? [{ path: '/admin', icon: Shield, label: 'Admin' }]
+    : navItems;
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -60,7 +65,7 @@ export default function Layout({ showNav, children, userEmail, onLogout, onReset
               <Logo size="compact" />
             </div>
             <nav className="flex-1 p-4 space-y-1">
-              {navItems.map(({ path, icon: Icon, label }) => (
+              {allNavItems.map(({ path, icon: Icon, label }) => (
                 <NavLink
                   key={path}
                   to={path}
@@ -94,7 +99,7 @@ export default function Layout({ showNav, children, userEmail, onLogout, onReset
                   Sign Out
                 </button>
               )}
-              {onReset && (
+              {onReset && !isAdmin && (
                 <button
                   onClick={onReset}
                   className="w-full text-xs text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"

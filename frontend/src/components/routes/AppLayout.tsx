@@ -24,6 +24,7 @@ export default function AppLayout() {
       userEmail={user?.email}
       onLogout={handleLogout}
       onReset={handleReset}
+      isAdmin={!!user?.is_admin}
     >
       <div key={location.pathname} className={showNav ? 'animate-fade-in h-full' : 'h-full'}>
         <Outlet />

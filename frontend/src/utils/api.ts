@@ -78,7 +78,7 @@ export async function login(email: string, password: string): Promise<AuthUser> 
   return data;
 }
 
-export async function getMe(): Promise<{ id: number; email: string; profile: UserInput | null; cached_timeline: TimelineResponse | null; cached_tax_guide: Record<string, unknown> | null } | null> {
+export async function getMe(): Promise<{ id: number; email: string; profile: UserInput | null; cached_timeline: TimelineResponse | null; cached_tax_guide: Record<string, unknown> | null; is_admin?: boolean } | null> {
   const token = getToken();
   if (!token) return null;
   try {
@@ -239,4 +239,52 @@ export async function getRequiredDocuments(step?: string) {
   const res = await authFetch(url);
   if (!res.ok) throw new Error('Failed to fetch documents');
   return res.json();
+}
+
+// --- Admin API ---
+export async function adminGetUsers(): Promise<{ users: Array<{ id: number; email: string; credits_used: number; credit_limit: number; is_admin: number; created_at: string }>; total: number }> {
+  const res = await authFetch(`${API_BASE}/admin/users`);
+  if (!res.ok) throw new Error('Failed to fetch users');
+  return res.json();
+}
+
+export async function adminDeleteUser(userId: number): Promise<void> {
+  const res = await authFetch(`${API_BASE}/admin/users/${userId}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.detail || 'Failed to delete user');
+  }
+}
+
+export async function adminUpdateCredits(userId: number, credits: number): Promise<void> {
+  const res = await authFetch(`${API_BASE}/admin/users/${userId}/credits`, {
+    method: 'PUT',
+    body: JSON.stringify({ credits_used: credits }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.detail || 'Failed to update credits');
+  }
+}
+
+export async function adminUpdateCreditLimit(userId: number, creditLimit: number): Promise<void> {
+  const res = await authFetch(`${API_BASE}/admin/users/${userId}/limit`, {
+    method: 'PUT',
+    body: JSON.stringify({ credit_limit: creditLimit }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.detail || 'Failed to update credit limit');
+  }
+}
+
+export async function adminUpdateEmail(userId: number, email: string): Promise<void> {
+  const res = await authFetch(`${API_BASE}/admin/users/${userId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.detail || 'Failed to update email');
+  }
 }

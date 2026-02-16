@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import RequireAuth from './components/routes/RequireAuth';
 import RequireOnboarded from './components/routes/RequireOnboarded';
+import RequireAdmin from './components/routes/RequireAdmin';
 import AppLayout from './components/routes/AppLayout';
 import LoginPage from './pages/LoginPage';
 import OnboardingPage from './pages/OnboardingPage';
@@ -11,6 +12,7 @@ import ChatPage from './pages/ChatPage';
 import DocumentsPage from './pages/DocumentsPage';
 import TaxGuidePageRoute from './pages/TaxGuidePage';
 import ProfilePageRoute from './pages/ProfilePage';
+import AdminPage from './pages/AdminPage';
 import ToastContainer from './components/Toast';
 
 export default function App() {
@@ -22,6 +24,9 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route element={<AppLayout />}>
             <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route element={<RequireAdmin />}>
+              <Route path="/admin" element={<AdminPage />} />
+            </Route>
             <Route element={<RequireOnboarded />}>
               <Route path="/timeline" element={<TimelinePage />} />
               <Route path="/alerts" element={<AlertsPageRoute />} />

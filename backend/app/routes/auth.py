@@ -3,8 +3,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from app.services.auth_service import register_user, login_user, validate_email
-from app.dependencies import get_current_user
-from app.database import save_timeline, get_user_timelines, save_user_profile, save_cached_timeline, save_cached_tax_guide, get_all_users
+from app.dependencies import get_current_user, get_admin_user
+from app.database import (
+    save_timeline, get_user_timelines, save_user_profile,
+    save_cached_timeline, save_cached_tax_guide, get_all_users,
+    delete_user, update_user_credits, update_user_email, update_user_credit_limit,
+)
 from app.rate_limit import rate_limit_auth
 
 router = APIRouter()
@@ -61,6 +65,7 @@ async def me(user: dict = Depends(get_current_user)):
         "cached_timeline": user.get("cached_timeline"),
         "cached_tax_guide": user.get("cached_tax_guide"),
         "credits_used": user.get("credits_used", 0) or 0,
+        "is_admin": bool(user.get("is_admin")),
     }
 
 
@@ -115,7 +120,71 @@ async def my_timelines(user: dict = Depends(get_current_user)):
 
 
 @router.get("/admin/users")
-async def admin_list_users(user: dict = Depends(get_current_user)):
-    """List all users (requires authentication)."""
+async def admin_list_users(user: dict = Depends(get_admin_user)):
+    """List all users (admin only)."""
     users = get_all_users()
     return {"users": users, "total": len(users)}
+
+
+class UpdateCreditsRequest(BaseModel):
+    credits_used: int
+
+
+class UpdateCreditLimitRequest(BaseModel):
+    credit_limit: int
+
+
+class UpdateEmailRequest(BaseModel):
+    email: str
+
+
+@router.delete("/admin/users/{user_id}")
+async def admin_delete_user(user_id: int, user: dict = Depends(get_admin_user)):
+    """Delete a user (admin only). Cannot delete self."""
+    if user_id == user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    deleted = delete_user(user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"status": "ok"}
+
+
+@router.put("/admin/users/{user_id}/credits")
+async def admin_update_credits(
+    user_id: int,
+    request: UpdateCreditsRequest,
+    user: dict = Depends(get_admin_user),
+):
+    """Set credits_used for a user (admin only)."""
+    updated = update_user_credits(user_id, request.credits_used)
+    if not updated:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"status": "ok"}
+
+
+@router.put("/admin/users/{user_id}/limit")
+async def admin_update_credit_limit(
+    user_id: int,
+    request: UpdateCreditLimitRequest,
+    user: dict = Depends(get_admin_user),
+):
+    """Set credit_limit for a user (admin only)."""
+    if request.credit_limit < 0:
+        raise HTTPException(status_code=400, detail="Credit limit must be non-negative")
+    updated = update_user_credit_limit(user_id, request.credit_limit)
+    if not updated:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"status": "ok"}
+
+
+@router.put("/admin/users/{user_id}")
+async def admin_update_user(
+    user_id: int,
+    request: UpdateEmailRequest,
+    user: dict = Depends(get_admin_user),
+):
+    """Update a user's email (admin only)."""
+    updated = update_user_email(user_id, request.email)
+    if not updated:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"status": "ok"}

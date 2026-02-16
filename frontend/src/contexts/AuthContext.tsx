@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // User is authenticated — show the app shell immediately
-      setUser({ id: me.id, email: me.email, token });
+      setUser({ id: me.id, email: me.email, token, is_admin: !!me.is_admin });
       if (me.cached_tax_guide) setCachedTaxGuide(me.cached_tax_guide);
 
       if (me.profile) {
