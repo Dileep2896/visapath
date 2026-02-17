@@ -176,18 +176,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsEditingProfile(false);
     setDraftStep(undefined);
     setTimelineError(null);
-
-    // Pre-check rate limit before expensive AI call
-    const rl = await checkRateLimit();
-    if (!rl.allowed) {
-      const msg = `Rate limit reached \u2014 ${rl.limit} AI requests/day. Please wait and try again.`;
-      setTimelineError(msg);
-      saveProfile(data).catch(() => {});
-      throw new Error(msg);
-    }
-
     setLoading(true);
     setGenerating(true);
+
+    // Pre-check rate limit before expensive AI call
+    try {
+      const rl = await checkRateLimit();
+      if (!rl.allowed) {
+        const msg = `Rate limit reached \u2014 ${rl.limit} AI requests/day. Please wait and try again.`;
+        setTimelineError(msg);
+        saveProfile(data).catch(() => {});
+        setLoading(false);
+        setGenerating(false);
+        return;
+      }
+    } catch {
+      // If rate-limit check fails, try generating anyway
+    }
+
     try {
       const result = await generateTimeline(data);
       setTimelineData(result);
@@ -198,7 +204,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const msg = err instanceof Error ? err.message : 'Failed to generate timeline. Please try again.';
       setTimelineError(msg);
       saveProfile(data).catch(() => {});
-      throw err; // Re-throw so caller knows generation failed
     } finally {
       setLoading(false);
       setGenerating(false);

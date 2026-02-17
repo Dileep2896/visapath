@@ -12,12 +12,12 @@ export default function OnboardingPage() {
   }
 
   async function onSubmit(data: UserInput) {
-    try {
-      await handleOnboardingSubmit(data);
-      navigate('/timeline');
-    } catch {
-      // Stay on onboarding page — error is displayed via timelineError state
-    }
+    // Navigate immediately so the user sees the full-page loading animation
+    // while the AI generates the timeline in the background
+    handleOnboardingSubmit(data).catch(() => {
+      // Error is handled via timelineError state on the timeline page
+    });
+    navigate('/timeline');
   }
 
   return (
