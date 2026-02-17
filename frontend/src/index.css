@@ -288,6 +288,58 @@ input:-webkit-autofill:active {
   position: relative;
 }
 
+/* Floating particles for timeline loading */
+@keyframes particleFloat {
+  0%, 100% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateY(-30px) translateX(10px) scale(1.2);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-50px) translateX(-5px) scale(0.8);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translateY(-20px) translateX(15px) scale(1.1);
+    opacity: 0.5;
+  }
+}
+
+.particle-float {
+  animation: particleFloat 6s ease-in-out infinite;
+}
+
+/* Scanning line for timeline preview */
+@keyframes scanLine {
+  0% {
+    top: -10%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 110%;
+    opacity: 0;
+  }
+}
+
+.timeline-scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 170, 0.4), transparent);
+  box-shadow: 0 0 15px rgba(0, 212, 170, 0.2), 0 0 30px rgba(0, 212, 170, 0.1);
+  animation: scanLine 3s ease-in-out infinite;
+}
+
 /* View transition */
 @keyframes fadeIn {
   from {
