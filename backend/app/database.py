@@ -766,6 +766,31 @@ def update_user_credit_limit(user_id: int, credit_limit: int) -> bool:
         _return_conn(conn)
 
 
+def update_user_created_at(user_id: int, created_at: str) -> bool:
+    """Set created_at for a user (admin only). Returns True if updated."""
+    conn = get_db()
+    try:
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(
+                f"UPDATE users SET created_at = {PH}::timestamp WHERE id = {PH}",
+                (created_at, user_id),
+            )
+            updated = cur.rowcount > 0
+            conn.commit()
+            cur.close()
+            return updated
+        else:
+            cursor = conn.execute(
+                f"UPDATE users SET created_at = {PH} WHERE id = {PH}",
+                (created_at, user_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+    finally:
+        _return_conn(conn)
+
+
 def update_user_email(user_id: int, email: str) -> bool:
     """Update email for a user. Returns True if updated."""
     conn = get_db()

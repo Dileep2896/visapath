@@ -8,6 +8,7 @@ from app.database import (
     save_timeline, get_user_timelines, save_user_profile,
     save_cached_timeline, save_cached_tax_guide, get_all_users,
     delete_user, update_user_credits, update_user_email, update_user_credit_limit,
+    update_user_created_at,
 )
 from app.rate_limit import rate_limit_auth
 
@@ -185,6 +186,23 @@ async def admin_update_user(
 ):
     """Update a user's email (admin only)."""
     updated = update_user_email(user_id, request.email)
+    if not updated:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"status": "ok"}
+
+
+class UpdateCreatedAtRequest(BaseModel):
+    created_at: str
+
+
+@router.put("/admin/users/{user_id}/created-at")
+async def admin_update_created_at(
+    user_id: int,
+    request: UpdateCreatedAtRequest,
+    user: dict = Depends(get_admin_user),
+):
+    """Set created_at for a user (admin only)."""
+    updated = update_user_created_at(user_id, request.created_at)
     if not updated:
         raise HTTPException(status_code=404, detail="User not found")
     return {"status": "ok"}
