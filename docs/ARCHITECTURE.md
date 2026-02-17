@@ -1,4 +1,4 @@
-# VisaPath — Architecture & Technical Documentation
+# VisaPath: Architecture & Technical Documentation
 
 ## Table of Contents
 
@@ -14,8 +14,6 @@
 - [Rate Limiting](#rate-limiting)
 - [Frontend Architecture](#frontend-architecture)
 
----
-
 ## System Architecture
 
 ```mermaid
@@ -24,7 +22,7 @@ graph TB
         Browser["Web Browser"]
     end
 
-    subgraph Frontend["Frontend - React 19 + Vite 7 + Tailwind v4 + React Router v7"]
+    subgraph Frontend["Frontend: React 19 + Vite 7 + Tailwind v4 + React Router v7"]
         AUTH["Auth Screen<br/><i>Login / Register</i>"]
         OF["Onboarding Form"]
         TD["Timeline Dashboard"]
@@ -36,7 +34,7 @@ graph TB
         AUTH & OF & TD & WIF & CP & DT & TXG --> API_CLIENT
     end
 
-    subgraph Backend["Backend - Python 3.13 + FastAPI"]
+    subgraph Backend["Backend: Python 3.13 + FastAPI"]
         subgraph Routes["API Routes"]
             R_AUTH["Auth Routes<br/><i>register, login, me, profile</i>"]
             R1["POST /api/generate-timeline"]
@@ -52,10 +50,10 @@ graph TB
         end
 
         subgraph Services["Services"]
-            TG["AI Timeline Generator<br/><i>Gemini-powered with fallback</i>"]
+            TG["AI Timeline Generator<br/><i>Gemini powered with fallback</i>"]
             RA["Risk Analyzer<br/><i>Flags CPT, backlog, deadline risks</i>"]
             CS["Chat Service"]
-            RAG["RAG Service<br/><i>Embed → Search → Retrieve</i>"]
+            RAG["RAG Service<br/><i>Embed > Search > Retrieve</i>"]
             GS["Gemini Service<br/><i>Prompt assembly + API call</i>"]
             AS["Auth Service<br/><i>bcrypt hashing + JWT</i>"]
         end
@@ -94,8 +92,6 @@ graph TB
     RAG -->|Embedding requests| GEMINI
 ```
 
----
-
 ## Request Flows
 
 ### Timeline Generation
@@ -111,7 +107,7 @@ sequenceDiagram
     participant Gemini as Gemini 2.5 Flash
 
     User->>FE: Fills onboarding form
-    FE->>FE: Navigate to /timeline immediately (fire-and-forget)
+    FE->>FE: Navigate to /timeline immediately (fire and forget)
     FE->>API: POST with user input + user_today (browser local date)
     API->>TG: generate_timeline(user_input, user_today)
     TG->>Data: Read 56 USCIS rules, filing fees, H-1B lottery stats, country backlogs
@@ -154,8 +150,6 @@ sequenceDiagram
     API-->>FE: { response, has_sources }
     FE-->>User: Display answer with citations
 ```
-
----
 
 ## API Endpoints
 
@@ -218,7 +212,7 @@ Generates a personalized immigration timeline using AI.
 
 ### `POST /api/chat`
 
-AI-powered Q&A with RAG context retrieval.
+AI Q&A with RAG context retrieval.
 
 **Request Body:**
 ```json
@@ -243,7 +237,7 @@ AI-powered Q&A with RAG context retrieval.
 
 ### `POST /api/tax-guide`
 
-AI-generated personalized tax filing guide.
+AI generated personalized tax filing guide.
 
 **Request Body:**
 ```json
@@ -273,11 +267,11 @@ AI-generated personalized tax filing guide.
 
 Returns document checklists for immigration steps.
 
-**Available steps:** `opt_application`, `stem_opt_extension`, `h1b_petition`, `green_card_perm`
+Available steps: `opt_application`, `stem_opt_extension`, `h1b_petition`, `green_card_perm`
 
 ### `GET /api/rate-limit-status`
 
-Returns current AI usage for frontend pre-check.
+Returns current AI usage so the frontend can pre-check before triggering expensive AI calls.
 
 **Response:**
 ```json
@@ -298,12 +292,10 @@ Returns current AI usage for frontend pre-check.
 | `/api/auth/login` | POST | Login, returns JWT token |
 | `/api/auth/me` | GET | Get current user profile + cached data |
 | `/api/auth/profile` | PUT | Save/update user profile |
-| `/api/auth/cached-timeline` | PUT | Cache AI-generated timeline |
-| `/api/auth/cached-tax-guide` | PUT | Cache AI-generated tax guide |
+| `/api/auth/cached-timeline` | PUT | Cache AI generated timeline |
+| `/api/auth/cached-tax-guide` | PUT | Cache AI generated tax guide |
 | `/api/auth/save-timeline` | POST | Save timeline to history |
 | `/api/auth/my-timelines` | GET | Get saved timeline history |
-
----
 
 ## Timeline Generation Engine
 
@@ -314,33 +306,31 @@ The AI timeline generator assembles a comprehensive prompt with all immigration 
 ### Prompt Assembly
 
 The prompt includes:
-1. **User profile** — visa type, degree, STEM status, graduation date, employment, career goal, country
-2. **56 hardcoded USCIS rules** — OPT windows, STEM OPT extensions, H-1B lottery, cap-gap, unemployment limits
-3. **USCIS filing fees** — $580 I-765 (OPT), $780 I-129 (H-1B), $215 H-1B registration, $2,805 premium processing
-4. **H-1B lottery statistics** — FY2024-FY2027 registration counts, selection rates, wage-level weighted selection
-5. **Country backlog data** — EB-1/EB-2/EB-3 wait times by country
-6. **Today's date** — from user's browser (timezone-correct)
+1. **User profile**: visa type, degree, STEM status, graduation date, employment, career goal, country
+2. **56 hardcoded USCIS rules**: OPT windows, STEM OPT extensions, H-1B lottery, cap-gap, unemployment limits
+3. **USCIS filing fees**: $580 I-765 (OPT), $780 I-129 (H-1B), $215 H-1B registration, $2,805 premium processing
+4. **H-1B lottery statistics**: FY2024 through FY2027 registration counts, selection rates, wage level weighted selection
+5. **Country backlog data**: EB-1/EB-2/EB-3 wait times by country
+6. **Today's date**: from user's browser (timezone correct)
 
 ### Supported Visa Pathways
 
-- F-1 → OPT → STEM OPT → H-1B → Green Card
-- F-1 → H-1B (direct, cap-exempt employers)
-- OPT → STEM OPT → H-1B
-- H-1B → Green Card (PERM → I-140 → I-485)
+- F-1 > OPT > STEM OPT > H-1B > Green Card
+- F-1 > H-1B (direct, cap exempt employers)
+- OPT > STEM OPT > H-1B
+- H-1B > Green Card (PERM > I-140 > I-485)
 
 ### Urgency Calculation
 
-Frontend recalculates urgency on every render (handles stale cached timelines):
+The frontend recalculates urgency on every render so cached timelines never show stale data:
 
 | Urgency | Condition | Color |
 |---------|-----------|-------|
-| `critical` | ≤ 7 days away | Red |
-| `high` | ≤ 30 days away | Amber |
-| `medium` | ≤ 90 days away | Teal |
-| `low` | > 90 days away | Slate |
+| `critical` | 7 days away or less | Red |
+| `high` | 30 days away or less | Amber |
+| `medium` | 90 days away or less | Teal |
+| `low` | More than 90 days away | Slate |
 | `passed` | Date is in the past | Dim |
-
----
 
 ## Risk Analysis Engine
 
@@ -359,25 +349,23 @@ Evaluates user input and flags potential immigration issues.
 | H-1B lottery uncertainty | Info | ~25-30% selection rate |
 | Low wage level + H-1B FY2027+ | Warning | Lower selection odds under weighted lottery |
 
----
-
 ## RAG Pipeline
 
 **Files:**
-- `backend/app/services/rag_service.py` — RAG orchestration
-- `backend/app/rag/ingest.py` — Document ingestion
-- `backend/app/rag/documents/` — Source knowledge base (8 documents)
+- `backend/app/services/rag_service.py` for RAG orchestration
+- `backend/app/rag/ingest.py` for document ingestion
+- `backend/app/rag/documents/` for the source knowledge base (8 documents)
 
 ### How It Works
 
 ```mermaid
 graph LR
-    subgraph Ingestion["1. Ingestion (one-time)"]
+    subgraph Ingestion["1. Ingestion (one time)"]
         direction TB
         DOCS["8 text files<br/>OPT, STEM OPT, H-1B,<br/>CPT, Green Card, F-1,<br/>H-1B Wage Levels, Tax Filing"]
         SPLIT["RecursiveCharacterTextSplitter<br/><i>1000 chars, 200 overlap</i>"]
         CHUNKS["21+ text chunks"]
-        EMBED_I["gemini-embedding-001<br/><i>768-dim vectors</i>"]
+        EMBED_I["gemini-embedding-001<br/><i>768 dim vectors</i>"]
         STORE["ChromaDB<br/><i>Local persistence</i>"]
         DOCS --> SPLIT --> CHUNKS --> EMBED_I --> STORE
     end
@@ -410,7 +398,7 @@ graph LR
 | `opt_rules.txt` | OPT eligibility, application process, deadlines, unemployment limits |
 | `stem_opt_extension.txt` | STEM OPT extension rules, E-Verify, I-983, employment rules |
 | `h1b_visa.txt` | H-1B cap, lottery, petition process, cap-gap, portability |
-| `h1b_wage_level_selection.txt` | FY2027+ wage-level weighted H-1B selection system |
+| `h1b_wage_level_selection.txt` | FY2027+ wage level weighted H-1B selection system |
 | `cpt_rules.txt` | CPT eligibility, types, 12-month rule, application process |
 | `green_card_process.txt` | EB categories, PERM, I-140, I-485, country backlogs, AC21 |
 | `f1_general_rules.txt` | F-1 status maintenance, employment options, SEVIS, violations |
@@ -418,18 +406,16 @@ graph LR
 
 ### Technical Details
 
-- **Splitter:** `RecursiveCharacterTextSplitter` (LangChain) — 1000 chars, 200 overlap
-- **Embedding Model:** `models/gemini-embedding-001` (768 dimensions)
+- **Splitter:** RecursiveCharacterTextSplitter (LangChain), 1000 chars, 200 overlap
+- **Embedding Model:** models/gemini-embedding-001 (768 dimensions)
 - **Vector Store:** ChromaDB (embedded, serverless, local persistence)
-- **Search:** Cosine similarity, top-k=4 results per query
-
----
+- **Search:** Cosine similarity, top k=4 results per query
 
 ## AI Chat Service
 
 **File:** `backend/app/services/gemini_service.py`
 
-**Model:** `gemini-2.5-flash` (primary) with `gemini-2.0-flash` fallback
+**Model:** gemini-2.5-flash (primary) with gemini-2.0-flash as fallback
 
 **Prompt Structure:**
 ```
@@ -444,13 +430,11 @@ You are VisaPath AI, an expert immigration advisor...
 Visa: F-1, Degree: Master's, STEM: Yes, Country: India
 
 [Reference Documents]
-<RAG-retrieved chunks with source metadata>
+<RAG retrieved chunks with source metadata>
 
 [User Question]
 Can I work for two employers on STEM OPT?
 ```
-
----
 
 ## Data Layer
 
@@ -501,30 +485,21 @@ FILING_FEES = {
 
 60+ common STEM Designated Degree Program CIP codes including Computer Science (11.0701), Engineering (14.xxxx), Mathematics (27.xxxx), Data Science (30.3101), etc.
 
----
-
 ## Authentication
 
 - **Registration:** Email + password, bcrypt hashing (salt rounds: 12)
 - **Login:** Returns JWT token (24h expiry)
 - **Token validation:** `dependencies.py` extracts user from JWT on protected routes
-- **Route guards (frontend):**
-  - `RequireAuth` — redirects unauthenticated users to `/login`
-  - `RequireOnboarded` — redirects users without profile to `/onboarding`
-  - `RequireAdmin` — restricts `/admin` to admin accounts
-
----
+- **Route guards (frontend):** `RequireAuth` redirects to /login, `RequireOnboarded` redirects to /onboarding, `RequireAdmin` restricts /admin
 
 ## Rate Limiting
 
-Two layers of rate limiting:
+Four layers:
 
-1. **Per-IP rate limiting** (`rate_limit.py`) — protects auth endpoints from brute force
-2. **Daily AI request tracker** (`ai_rate_limit.py`) — limits total Gemini API calls per day
-3. **Frontend pre-check** — `GET /api/rate-limit-status` allows frontend to fast-fail before expensive AI calls
-4. **Gemini 429 sticky marker** — 5-minute cooldown after receiving a Gemini rate limit error
-
----
+1. **Per-IP rate limiting** (`rate_limit.py`) protects auth endpoints from brute force
+2. **Daily AI request tracker** (`ai_rate_limit.py`) limits total Gemini API calls per day
+3. **Frontend pre-check** via `GET /api/rate-limit-status` lets the frontend fast fail before expensive AI calls
+4. **Gemini 429 sticky marker** triggers a 5-minute cooldown after receiving a Gemini rate limit error
 
 ## Frontend Architecture
 
@@ -534,26 +509,26 @@ Two layers of rate limiting:
 - User authentication (login, register, logout)
 - User profile and onboarding data
 - Cached timeline and tax guide
-- AI generation loading states (`generating` flag drives the loading skeleton)
+- AI generation loading states (the `generating` flag drives the loading skeleton)
 
 ### Routing
 
 ```
-/login          → LoginPage (public)
-/onboarding     → OnboardingPage (auth required)
-/timeline       → TimelinePage (auth + onboarded)
-/alerts         → AlertsPage (auth + onboarded)
-/actions        → ActionsPage (auth + onboarded)
-/chat           → ChatPage (auth + onboarded)
-/documents      → DocumentsPage (auth + onboarded)
-/tax-guide      → TaxGuidePage (auth + onboarded)
-/profile        → ProfilePage (auth + onboarded)
-/admin          → AdminPage (admin only)
-*               → Redirect to /timeline
+/login          > LoginPage (public)
+/onboarding     > OnboardingPage (auth required)
+/timeline       > TimelinePage (auth + onboarded)
+/alerts         > AlertsPage (auth + onboarded)
+/actions        > ActionsPage (auth + onboarded)
+/chat           > ChatPage (auth + onboarded)
+/documents      > DocumentsPage (auth + onboarded)
+/tax-guide      > TaxGuidePage (auth + onboarded)
+/profile        > ProfilePage (auth + onboarded)
+/admin          > AdminPage (admin only)
+*               > Redirect to /timeline
 ```
 
 ### Key Design Decisions
 
-- **Fire-and-forget navigation:** Onboarding submits data and immediately navigates to `/timeline`, showing the loading skeleton while AI generates in the background
-- **Client-side date recalculation:** `TimelineDashboard` recalculates `is_past` and `urgency` from browser date via `useMemo` on every render — handles stale cached timelines
-- **Browser local date:** Frontend sends `user_today` with timeline requests for timezone-correct date handling
+- **Fire and forget navigation:** Onboarding submits data and immediately navigates to `/timeline`, showing the loading skeleton while AI generates in the background
+- **Client side date recalculation:** `TimelineDashboard` recalculates `is_past` and `urgency` from the browser date via `useMemo` on every render, so cached timelines never go stale
+- **Browser local date:** Frontend sends `user_today` with timeline requests for timezone correct date handling
