@@ -128,7 +128,7 @@ export default function TimelineDashboard({ data }: TimelineDashboardProps) {
       } else {
         urgency = 'low';
       }
-      return { ...e, is_past: isPast, urgency };
+      return { ...e, is_past: isPast, urgency } as TimelineEvent;
     });
   }, [data.timeline_events]);
 
