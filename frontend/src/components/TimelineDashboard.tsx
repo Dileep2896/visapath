@@ -108,7 +108,31 @@ export default function TimelineDashboard({ data }: TimelineDashboardProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showPast, setShowPast] = useState(false);
 
-  const { timeline_events, current_status, risk_alerts } = data;
+  // Recalculate is_past and urgency from current date (timeline may have been cached days ago)
+  const timeline_events = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return data.timeline_events.map(e => {
+      const eventDate = new Date(e.date + 'T00:00:00');
+      const isPast = eventDate < today;
+      const diffDays = Math.round((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      let urgency = e.urgency;
+      if (isPast) {
+        urgency = 'passed';
+      } else if (diffDays <= 7) {
+        urgency = 'critical';
+      } else if (diffDays <= 30) {
+        urgency = 'high';
+      } else if (diffDays <= 90) {
+        urgency = 'medium';
+      } else {
+        urgency = 'low';
+      }
+      return { ...e, is_past: isPast, urgency };
+    });
+  }, [data.timeline_events]);
+
+  const { current_status, risk_alerts } = data;
 
   const currentIdx = timeline_events.findIndex(e => !e.is_past);
   const pastCount = timeline_events.filter(e => e.is_past).length;
@@ -129,13 +153,21 @@ export default function TimelineDashboard({ data }: TimelineDashboardProps) {
 
   return (
     <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
-      {/* Status Badge */}
+      {/* Status Badge — recalculate countdown from current date */}
       <div className="animate-fade-in-up">
         <StatusBadge
           visa={current_status.visa}
           workAuth={current_status.work_auth}
-          daysUntilDeadline={current_status.days_until_next_deadline}
-          nextDeadline={current_status.next_deadline}
+          daysUntilDeadline={(() => {
+            const upcoming = timeline_events.find(e => e.type === 'deadline' && !e.is_past);
+            if (!upcoming) return current_status.days_until_next_deadline;
+            const now = new Date(); now.setHours(0, 0, 0, 0);
+            return Math.round((new Date(upcoming.date + 'T00:00:00').getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          })()}
+          nextDeadline={
+            timeline_events.find(e => e.type === 'deadline' && !e.is_past)?.title
+            ?? current_status.next_deadline
+          }
         />
       </div>
 
@@ -224,10 +256,10 @@ export default function TimelineDashboard({ data }: TimelineDashboardProps) {
                   >
                     {/* Dot on timeline */}
                     <div
-                      className={`absolute left-[9px] top-3 z-10 ${
+                      className={`absolute top-3 z-10 ${
                         isCurrent
-                          ? 'w-[22px] h-[22px] -ml-[3px]'
-                          : 'w-4 h-4'
+                          ? 'w-[22px] h-[22px] left-[7.5px]'
+                          : 'w-4 h-4 left-[10.5px]'
                       } rounded-full border-2 border-navy-950 ${urgencyDotColors[event.urgency]} ${
                         isCurrent ? 'animate-pulse-glow ring-2 ring-teal-400/40 ring-offset-2 ring-offset-navy-950 current-dot-glow' : ''
                       }`}
