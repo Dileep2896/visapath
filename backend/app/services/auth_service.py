@@ -83,4 +83,4 @@ def login_user(email: str, password: str) -> dict:
         raise ValueError("Invalid email or password")
 
     token = create_token(user["id"])
-    return {"id": user["id"], "email": user["email"], "token": token}
+    return {"id": user["id"], "email": user["email"], "token": token, "is_admin": bool(user.get("is_admin"))}
