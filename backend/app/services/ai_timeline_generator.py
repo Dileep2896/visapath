@@ -56,7 +56,12 @@ provided. Think step by step about what this user needs to know and when."""
 
 
 def _build_prompt(user_input: dict) -> str:
-    today = date.today()
+    # Use user's local date if provided, fall back to server date
+    user_today = user_input.get("user_today", "")
+    try:
+        today = date.fromisoformat(user_today) if user_today else date.today()
+    except ValueError:
+        today = date.today()
     country = user_input.get("country", "Rest of World")
     country_cat = get_country_category(country)
     gc_wait = get_green_card_wait(country, "EB-2")
@@ -320,12 +325,15 @@ def _validate_risk(risk: dict) -> dict | None:
     return risk
 
 
-def _validate_response(data: dict) -> dict | None:
+def _validate_response(data: dict, user_today: str = "") -> dict | None:
     """Validate the full Gemini response. Returns cleaned data or None."""
     if not isinstance(data, dict):
         return None
 
-    today = date.today()
+    try:
+        today = date.fromisoformat(user_today) if user_today else date.today()
+    except ValueError:
+        today = date.today()
 
     raw_events = data.get("timeline_events")
     if not isinstance(raw_events, list):
@@ -375,12 +383,13 @@ async def generate_ai_timeline(user_input: dict) -> dict:
     Raises on complete failure so the caller can show an error.
     """
     prompt = _build_prompt(user_input)
+    user_today = user_input.get("user_today", "")
     last_error = None
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             raw = await generate_structured_json_async(prompt, SYSTEM_INSTRUCTION)
-            result = _validate_response(raw)
+            result = _validate_response(raw, user_today)
             if result is not None:
                 logger.info(
                     "AI timeline generated (attempt %d): %d events, %d risks",

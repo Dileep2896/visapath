@@ -167,9 +167,12 @@ export async function checkRateLimit(): Promise<{ allowed: boolean; remaining: n
 export async function generateTimeline(input: UserInput): Promise<TimelineResponse> {
   let res: Response;
   try {
+    // Send user's local date so the AI uses the correct "today"
+    const localDate = new Date();
+    const userToday = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
     res = await authFetch(`${API_BASE}/generate-timeline`, {
       method: 'POST',
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, user_today: userToday }),
     }, AI_TIMEOUT);
   } catch (err: unknown) {
     if (err instanceof DOMException && err.name === 'AbortError') {

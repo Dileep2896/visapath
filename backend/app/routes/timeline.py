@@ -62,6 +62,7 @@ class TimelineRequest(BaseModel):
     employer_is_cap_exempt: bool = False
     wage_level: int = Field(default=1, ge=1, le=4)
     opt_ead_end_date: str = Field(default="", max_length=10)
+    user_today: str = Field(default="", max_length=10)  # User's local date (YYYY-MM-DD)
 
 
 @router.post("/generate-timeline")
@@ -107,9 +108,12 @@ async def create_timeline(request: TimelineRequest, user: dict = Depends(get_cur
         "work_auth": _get_work_auth(request.visa_type),
     }
 
-    # Find next upcoming deadline
+    # Find next upcoming deadline — use user's local date if provided
     from datetime import date
-    today = date.today()
+    try:
+        today = date.fromisoformat(request.user_today) if request.user_today else date.today()
+    except ValueError:
+        today = date.today()
     upcoming = [
         e for e in timeline_events
         if e["type"] == "deadline" and not e.get("is_past", False)
