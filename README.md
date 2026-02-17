@@ -7,6 +7,24 @@ An AI powered web app that helps international students in the US track every vi
 **Live Demo:** [visapath-app.azurewebsites.net](https://visapath-app.azurewebsites.net)
 **Demo Video:** _[YouTube link coming soon]_
 
+## Screenshots
+
+| Login | Timeline Dashboard |
+|---|---|
+| ![Login](screenshots/login.png) | ![Timeline](screenshots/timeline.png) |
+
+| Risk Alerts | Action Items |
+|---|---|
+| ![Risk Alerts](screenshots/risk-alerts.png) | ![Action Items](screenshots/action-items.png) |
+
+| AI Chat | Document Tracker |
+|---|---|
+| ![AI Chat](screenshots/ai-chat.png) | ![Documents](screenshots/documents.png) |
+
+| Tax Guide | Profile |
+|---|---|
+| ![Tax Guide](screenshots/tax-guide.png) | ![Profile](screenshots/profile.png) |
+
 ## Problem
 
 There are over 1 million international students in the US right now, and every single one of them deals with a confusing mess of visa deadlines, work authorization windows, and immigration paperwork. The information they need is spread across USCIS.gov, Reddit, university DSO offices, and $300/hr immigration lawyers.

@@ -6,8 +6,10 @@ import TimelineDashboard from '../components/TimelineDashboard';
 import WhatIfPanel from '../components/WhatIfPanel';
 import { Save, Check, Clock, RefreshCw, FileText, User, Map, Zap, FlaskConical } from 'lucide-react';
 import { checkRateLimit } from '../utils/api';
+import usePageTitle from '../hooks/usePageTitle';
 
 export default function TimelinePage() {
+  usePageTitle('Timeline');
   const navigate = useNavigate();
   const [credits, setCredits] = useState<{ remaining: number; limit: number } | null>(null);
   const {

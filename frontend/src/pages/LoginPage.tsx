@@ -3,8 +3,10 @@ import { useAuth } from '../contexts/AuthContext';
 import AuthScreen from '../components/AuthScreen';
 import { getMe } from '../utils/api';
 import type { AuthUser, UserInput } from '../types';
+import usePageTitle from '../hooks/usePageTitle';
 
 export default function LoginPage() {
+  usePageTitle('Login');
   const { user, userInput, draftStep, setUser, setUserInput, setTimelineData, setDraftStep, setCachedTaxGuide } = useAuth();
 
   if (user) {

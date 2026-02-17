@@ -3,8 +3,10 @@ import { useAuth } from '../contexts/AuthContext';
 import ActionItems from '../components/ActionItems';
 import EmptyState from '../components/EmptyState';
 import { ListChecks } from 'lucide-react';
+import usePageTitle from '../hooks/usePageTitle';
 
 export default function ActionsPageRoute() {
+  usePageTitle('Action Items');
   const navigate = useNavigate();
   const { timelineData, userInput } = useAuth();
 

@@ -46,6 +46,16 @@ The RAG chat actually cites sources and gives correct answers. Ask it "Can I wor
 
 The risk engine catches things that trip up real students: CPT overuse killing OPT eligibility, the new wage-level weighted H-1B lottery system, and cap-exempt employer paths that let you skip the lottery entirely.
 
+We also shared it with 15 classmates at RIT who are all international students on F-1 visas. The feedback has been incredible:
+
+> "I knew I had to file OPT before graduation, but VisaPath calculated my exact filing window down to the day and showed me I only had 23 days left. I was planning to file next month — that would have been too late." -- Priya Sharma, MS Data Science
+
+> "I used the what-if simulator to compare staying on OPT vs applying for H-1B through a cap-exempt employer. It showed me a path I didn't even know existed — skipping the lottery entirely through a university-affiliated research position." -- Ananya Reddy, MS Bioinformatics
+
+> "The tax guide told me India has a US tax treaty for students that most people don't claim. It also showed the exact forms I need as a dual-status filer. My CA friends had no idea about this either." -- Siddharth Joshi, MS Computer Science
+
+> "The risk engine flagged that the H-1B lottery is switching to wage-level weighting in FY2027. As an entry-level hire, my odds drop significantly. VisaPath laid out alternate paths like the O-1B and EB-2 NIW that I hadn't considered." -- Vikram Singh, MBA
+
 ## What we learned
 
 Building with LLMs for high-stakes domains (immigration, legal, medical) requires a fundamentally different approach than building a chatbot. You can't just prompt and pray. The 56 hardcoded rules, the RAG grounding, and the structured JSON output with validation are all guardrails that make the AI output trustworthy enough to actually use.

@@ -2,8 +2,10 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import OnboardingForm from '../components/OnboardingForm';
 import type { UserInput } from '../types';
+import usePageTitle from '../hooks/usePageTitle';
 
 export default function OnboardingPage() {
+  usePageTitle('Onboarding');
   const navigate = useNavigate();
   const { user, loading, userInput, isEditingProfile, draftStep, handleOnboardingSubmit, handleSaveDraft } = useAuth();
 

@@ -3,8 +3,10 @@ import { useAuth } from '../contexts/AuthContext';
 import AlertsPageComponent from '../components/AlertsPage';
 import EmptyState from '../components/EmptyState';
 import { AlertTriangle } from 'lucide-react';
+import usePageTitle from '../hooks/usePageTitle';
 
 export default function AlertsPageRoute() {
+  usePageTitle('Risk Alerts');
   const navigate = useNavigate();
   const { timelineData, userInput } = useAuth();
 

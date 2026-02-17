@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VisaPath - Nexora Hacks 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --teal: #00d4aa;
+    --teal-dim: rgba(0,212,170,0.12);
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --navy: #0a0f1e;
+    --navy-light: #0f172a;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--navy);
+    color: #e2e8f0;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ===================== SLIDE BASE ===================== */
+  .slide {
+    display: none;
+    height: 100vh;
+    width: 100vw;
+    padding: 50px 70px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide.active {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* Animated grid background */
+  .slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,170,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,170,0.025) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    animation: gridPulse 8s ease-in-out infinite;
+  }
+
+  @keyframes gridPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  .slide > * { position: relative; z-index: 2; }
+
+  /* Floating orbs */
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(80px);
+  }
+
+  .orb-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(0,212,170,0.08), transparent 70%);
+    top: -150px; right: -100px;
+    animation: float1 12s ease-in-out infinite;
+  }
+
+  .orb-2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(99,102,241,0.06), transparent 70%);
+    bottom: -100px; left: -100px;
+    animation: float2 15s ease-in-out infinite;
+  }
+
+  .orb-3 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(245,158,11,0.05), transparent 70%);
+    top: 50%; left: 60%;
+    animation: float3 10s ease-in-out infinite;
+  }
+
+  @keyframes float1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(-30px, 20px) scale(1.05); }
+    66% { transform: translate(20px, -15px) scale(0.95); }
+  }
+
+  @keyframes float2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(25px, -20px) scale(1.1); }
+  }
+
+  @keyframes float3 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-20px, 15px); }
+  }
+
+  /* ===================== ANIMATIONS ===================== */
+  .slide.active .anim-fade {
+    animation: fadeIn 0.6s ease-out both;
+  }
+
+  .slide.active .anim-up {
+    animation: slideUp 0.7s ease-out both;
+  }
+
+  .slide.active .anim-left {
+    animation: slideLeft 0.7s ease-out both;
+  }
+
+  .slide.active .anim-right {
+    animation: slideRight 0.7s ease-out both;
+  }
+
+  .slide.active .anim-scale {
+    animation: scaleIn 0.6s ease-out both;
+  }
+
+  .slide.active .anim-glow {
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  .d1 { animation-delay: 0.1s !important; }
+  .d2 { animation-delay: 0.2s !important; }
+  .d3 { animation-delay: 0.35s !important; }
+  .d4 { animation-delay: 0.5s !important; }
+  .d5 { animation-delay: 0.65s !important; }
+  .d6 { animation-delay: 0.8s !important; }
+  .d7 { animation-delay: 0.95s !important; }
+  .d8 { animation-delay: 1.1s !important; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideLeft {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes slideRight {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(0,212,170,0.15); }
+    50% { box-shadow: 0 0 40px rgba(0,212,170,0.3); }
+  }
+
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  @keyframes borderGlow {
+    0%, 100% { border-color: rgba(0,212,170,0.2); }
+    50% { border-color: rgba(0,212,170,0.5); }
+  }
+
+  /* ===================== TYPOGRAPHY ===================== */
+  h1 {
+    font-size: 3.4rem;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #fff 0%, #cbd5e1 50%, #00d4aa 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: shimmer 6s linear infinite;
+  }
+
+  h2 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 28px;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+    color: #94a3b8;
+    margin-bottom: 36px;
+    line-height: 1.7;
+    max-width: 750px;
+  }
+
+  .teal { color: var(--teal); }
+  .amber { color: var(--amber); }
+  .red { color: var(--red); }
+
+  /* ===================== TAGS ===================== */
+  .tag {
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    width: fit-content;
+    align-self: flex-start;
+  }
+
+  .center-slide .tag {
+    align-self: center;
+  }
+
+  .tag-teal { background: rgba(0,212,170,0.1); color: #00d4aa; border: 1px solid rgba(0,212,170,0.25); }
+  .tag-amber { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+  .tag-red { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+  .tag-blue { background: rgba(59,130,246,0.1); color: #3b82f6; border: 1px solid rgba(59,130,246,0.25); }
+
+  /* ===================== STAT CARDS ===================== */
+  .stat-row {
+    display: flex;
+    gap: 24px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    text-align: center;
+    padding: 24px 32px;
+    background: rgba(15,23,42,0.5);
+    border: 1px solid rgba(0,212,170,0.12);
+    border-radius: 16px;
+    min-width: 160px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+
+  .stat:hover {
+    border-color: rgba(0,212,170,0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,212,170,0.08);
+  }
+
+  .stat-number {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--teal);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    line-height: 1.4;
+  }
+
+  /* ===================== POINTS LIST ===================== */
+  .points {
+    list-style: none;
+    margin-top: 8px;
+  }
+
+  .points li {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    padding-left: 28px;
+    position: relative;
+    color: #94a3b8;
+  }
+
+  .points li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 8px rgba(0,212,170,0.4);
+  }
+
+  .points li strong { color: #fff; }
+
+  /* ===================== CARDS ===================== */
+  .feature-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 8px;
+  }
+
+  .feature-card {
+    padding: 24px;
+    background: rgba(15,23,42,0.5);
+    border: 1px solid rgba(100,116,139,0.15);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+
+  .feature-card:hover {
+    border-color: rgba(0,212,170,0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+
+  .feature-card-icon {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .feature-card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .feature-card-desc {
+    font-size: 0.88rem;
+    color: #64748b;
+    line-height: 1.6;
+  }
+
+  /* ===================== LAYOUT ===================== */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    align-items: start;
+  }
+
+  .center-slide {
+    align-items: center;
+    text-align: center;
+  }
+
+  .center-slide h1 { margin-bottom: 20px; }
+  .center-slide .subtitle { margin: 0 auto 36px; }
+
+  /* ===================== TECH GRID ===================== */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .tech-item {
+    padding: 16px 18px;
+    background: rgba(15,23,42,0.5);
+    border: 1px solid rgba(100,116,139,0.12);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+
+  .tech-item:hover {
+    border-color: rgba(0,212,170,0.3);
+    transform: translateY(-1px);
+  }
+
+  .tech-item-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--teal);
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+
+  .tech-item-value {
+    font-size: 0.95rem;
+    color: #e2e8f0;
+    font-weight: 600;
+  }
+
+  /* ===================== FLOW STEPS ===================== */
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .flow-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.3);
+    color: var(--teal);
+    font-weight: 800;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .flow-text {
+    font-size: 1rem;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+
+  .flow-text strong { color: #fff; }
+
+  /* ===================== TESTIMONIALS ===================== */
+  .testimonial {
+    padding: 24px;
+    background: rgba(15,23,42,0.5);
+    border: 1px solid rgba(0,212,170,0.15);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .testimonial::before {
+    content: '\201C';
+    position: absolute;
+    top: 10px;
+    left: 16px;
+    font-size: 4rem;
+    color: rgba(0,212,170,0.08);
+    font-family: Georgia, serif;
+    line-height: 1;
+  }
+
+  .testimonial:hover {
+    border-color: rgba(0,212,170,0.35);
+    transform: translateY(-2px);
+  }
+
+  .testimonial-stars {
+    color: #f59e0b;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .testimonial-text {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    line-height: 1.65;
+    font-style: italic;
+    margin-bottom: 14px;
+  }
+
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .testimonial-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.75rem;
+    color: var(--navy);
+    flex-shrink: 0;
+  }
+
+  .testimonial-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .testimonial-role {
+    color: #475569;
+    font-size: 0.75rem;
+  }
+
+  /* ===================== ROADMAP ===================== */
+  .roadmap-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .roadmap-item {
+    padding: 16px 20px;
+    background: rgba(15,23,42,0.5);
+    border: 1px solid rgba(100,116,139,0.12);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: #94a3b8;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+  }
+
+  .roadmap-item:hover {
+    border-color: rgba(0,212,170,0.25);
+    transform: translateX(4px);
+  }
+
+  .roadmap-item strong { color: var(--teal); }
+
+  /* ===================== LOGO ===================== */
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .logo-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(0,212,170,0.2), rgba(0,212,170,0.05));
+    border: 1px solid rgba(0,212,170,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-text {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+
+  .logo-text span { color: var(--teal); }
+
+  /* ===================== NAV ===================== */
+  .nav {
+    position: fixed;
+    bottom: 24px;
+    right: 32px;
+    display: flex;
+    gap: 8px;
+    z-index: 100;
+  }
+
+  .nav button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,212,170,0.25);
+    background: rgba(15,23,42,0.8);
+    color: var(--teal);
+    font-size: 1.1rem;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s;
+  }
+
+  .nav button:hover {
+    background: rgba(0,212,170,0.12);
+    border-color: rgba(0,212,170,0.5);
+    transform: scale(1.05);
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--teal), #0ea5e9);
+    z-index: 200;
+    transition: width 0.4s ease;
+    box-shadow: 0 0 10px rgba(0,212,170,0.5);
+  }
+
+  .slide-counter {
+    position: fixed;
+    bottom: 30px;
+    left: 32px;
+    font-size: 0.8rem;
+    color: #334155;
+    z-index: 100;
+    font-weight: 600;
+  }
+
+  /* ===================== MIGRATION ARROW ===================== */
+  .migration-flow {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: center;
+    margin: 20px 0;
+  }
+
+  .migration-box {
+    padding: 20px 28px;
+    border-radius: 16px;
+    text-align: center;
+    min-width: 180px;
+  }
+
+  .migration-box-current {
+    background: rgba(100,116,139,0.1);
+    border: 1px solid rgba(100,116,139,0.2);
+  }
+
+  .migration-box-next {
+    background: rgba(0,212,170,0.08);
+    border: 1px solid rgba(0,212,170,0.25);
+    animation: borderGlow 3s ease-in-out infinite;
+  }
+
+  .migration-arrow {
+    color: var(--teal);
+    font-size: 1.6rem;
+    animation: arrowBounce 1.5s ease-in-out infinite;
+    flex-shrink: 0;
+    width: 60px;
+    text-align: center;
+  }
+
+  @keyframes arrowBounce {
+    0%, 100% { transform: translateX(0); opacity: 0.6; }
+    50% { transform: translateX(10px); opacity: 1; }
+  }
+
+  /* ===================== SVG ILLUSTRATIONS ===================== */
+  .illustration {
+    position: absolute;
+    z-index: 1;
+    opacity: 0.12;
+    pointer-events: none;
+  }
+
+  /* ===================== INLINE VISUALS ===================== */
+  .visual-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .badge-live {
+    background: rgba(34,197,94,0.12);
+    color: #22c55e;
+    border: 1px solid rgba(34,197,94,0.25);
+  }
+
+  .badge-live::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: blink 1.5s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .user-avatars {
+    display: flex;
+    margin-left: 8px;
+  }
+
+  .user-avatars .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: var(--navy);
+    margin-left: -8px;
+  }
+
+  .user-avatars .avatar:first-child { margin-left: 0; }
+
+  .avatar-more {
+    background: rgba(100,116,139,0.3) !important;
+    color: #94a3b8 !important;
+    font-size: 0.55rem !important;
+    font-weight: 700 !important;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ==================== SLIDE 1: TITLE ==================== -->
+<div class="slide active center-slide">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <!-- SVG Globe illustration -->
+  <svg class="illustration" style="right:60px; top:50%; transform:translateY(-50%); width:380px; height:380px" viewBox="0 0 200 200">
+    <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(0,212,170,0.3)" stroke-width="0.5"/>
+    <ellipse cx="100" cy="100" rx="50" ry="80" fill="none" stroke="rgba(0,212,170,0.2)" stroke-width="0.5"/>
+    <ellipse cx="100" cy="100" rx="25" ry="80" fill="none" stroke="rgba(0,212,170,0.15)" stroke-width="0.5"/>
+    <line x1="20" y1="70" x2="180" y2="70" stroke="rgba(0,212,170,0.15)" stroke-width="0.5"/>
+    <line x1="20" y1="100" x2="180" y2="100" stroke="rgba(0,212,170,0.2)" stroke-width="0.5"/>
+    <line x1="20" y1="130" x2="180" y2="130" stroke="rgba(0,212,170,0.15)" stroke-width="0.5"/>
+    <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(0,212,170,0.4)" stroke-width="1" stroke-dasharray="4 8">
+      <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="60s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Passport icon in center -->
+    <rect x="82" y="78" width="36" height="44" rx="4" fill="rgba(0,212,170,0.15)" stroke="rgba(0,212,170,0.4)" stroke-width="1"/>
+    <circle cx="100" cy="95" r="8" fill="none" stroke="rgba(0,212,170,0.5)" stroke-width="0.8"/>
+    <line x1="88" y1="110" x2="112" y2="110" stroke="rgba(0,212,170,0.3)" stroke-width="0.8"/>
+    <line x1="90" y1="114" x2="110" y2="114" stroke="rgba(0,212,170,0.2)" stroke-width="0.8"/>
+  </svg>
+
+  <div class="logo-area anim-up d1" style="justify-content:center">
+    <div class="logo-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00d4aa" stroke-width="2" stroke-linecap="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div class="logo-text">Visa<span>Path</span></div>
+    <span class="visual-badge badge-live" style="margin-left:8px">LIVE</span>
+  </div>
+
+  <h1 class="anim-up d2">AI Immigration Timeline<br>for International Students</h1>
+  <p class="subtitle anim-up d3">Never miss a visa deadline again. VisaPath takes your specific situation and builds a personalized roadmap from OPT all the way to green card.</p>
+
+  <div class="stat-row anim-up d4" style="justify-content:center">
+    <div class="stat">
+      <div class="stat-number">1M+</div>
+      <div class="stat-label">International students in the US</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">$300/hr</div>
+      <div class="stat-label">Average immigration lawyer cost</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number">1</div>
+      <div class="stat-label">Missed deadline can end your status</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 2: PROBLEM ==================== -->
+<div class="slide">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- SVG: scattered docs illustration -->
+  <svg class="illustration" style="right:40px; bottom:40px; width:300px; height:300px" viewBox="0 0 200 200">
+    <rect x="20" y="30" width="50" height="65" rx="4" fill="none" stroke="rgba(239,68,68,0.3)" stroke-width="1" transform="rotate(-8 45 62)"/>
+    <rect x="80" y="20" width="50" height="65" rx="4" fill="none" stroke="rgba(245,158,11,0.3)" stroke-width="1" transform="rotate(5 105 52)"/>
+    <rect x="50" y="100" width="50" height="65" rx="4" fill="none" stroke="rgba(100,116,139,0.3)" stroke-width="1" transform="rotate(-3 75 132)"/>
+    <rect x="120" y="90" width="50" height="65" rx="4" fill="none" stroke="rgba(0,212,170,0.2)" stroke-width="1" transform="rotate(7 145 122)"/>
+    <line x1="30" y1="50" x2="60" y2="50" stroke="rgba(239,68,68,0.2)" stroke-width="1"/>
+    <line x1="30" y1="58" x2="55" y2="58" stroke="rgba(239,68,68,0.15)" stroke-width="1"/>
+    <line x1="90" y1="40" x2="120" y2="40" stroke="rgba(245,158,11,0.2)" stroke-width="1"/>
+    <line x1="90" y1="48" x2="115" y2="48" stroke="rgba(245,158,11,0.15)" stroke-width="1"/>
+    <!-- Question marks -->
+    <text x="100" y="180" font-size="24" fill="rgba(239,68,68,0.2)" font-weight="800">?</text>
+    <text x="140" y="175" font-size="18" fill="rgba(245,158,11,0.2)" font-weight="800">?</text>
+    <text x="60" y="185" font-size="20" fill="rgba(100,116,139,0.2)" font-weight="800">?</text>
+  </svg>
+
+  <span class="tag tag-red anim-up d1">THE PROBLEM</span>
+  <h2 class="anim-up d2">Immigration info is scattered,<br>confusing, and high stakes</h2>
+  <div class="two-col">
+    <ul class="points anim-up d3">
+      <li>OPT application window: <strong>90 days before graduation, 60 days after</strong>. Miss it and you lose work authorization.</li>
+      <li>H-1B lottery registration opens in <strong>March each year</strong> with a ~27% selection rate</li>
+      <li>Using <strong>12+ months of CPT</strong> permanently kills your OPT eligibility</li>
+      <li>India/China nationals face <strong>10-30+ year</strong> green card backlogs</li>
+    </ul>
+    <div class="anim-up d4">
+      <p style="color:#64748b; margin-bottom:24px; font-size:1.05rem">Students currently piece together info from:</p>
+      <ul class="points">
+        <li>USCIS.gov <span style="color:#475569">(dense, hard to navigate)</span></li>
+        <li>Reddit threads <span style="color:#475569">(unverified, outdated)</span></li>
+        <li>University DSO offices <span style="color:#475569">(limited hours)</span></li>
+        <li>Immigration lawyers <span style="color:#475569">($300+/hr)</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 3: SOLUTION ==================== -->
+<div class="slide">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <span class="tag tag-teal anim-up d1">THE SOLUTION</span>
+  <h2 class="anim-up d2">One personalized timeline for your<br>entire immigration journey</h2>
+  <div class="feature-cards">
+    <div class="feature-card anim-scale d3">
+      <div class="feature-card-icon">&#128197;</div>
+      <div class="feature-card-title">Smart Timeline</div>
+      <div class="feature-card-desc">AI generates every deadline and milestone, color coded by urgency, grouped by month, with specific action items</div>
+    </div>
+    <div class="feature-card anim-scale d4">
+      <div class="feature-card-icon">&#9888;&#65039;</div>
+      <div class="feature-card-title">Risk Alerts</div>
+      <div class="feature-card-desc">Flags CPT overuse, country backlogs, H-1B lottery odds, and approaching deadlines you haven't prepared for</div>
+    </div>
+    <div class="feature-card anim-scale d5">
+      <div class="feature-card-icon">&#128172;</div>
+      <div class="feature-card-title">RAG Chat</div>
+      <div class="feature-card-desc">Ask any immigration question. Answers grounded in 8 USCIS knowledge base documents, not hallucinated</div>
+    </div>
+    <div class="feature-card anim-scale d5">
+      <div class="feature-card-icon">&#128203;</div>
+      <div class="feature-card-title">Document Tracker</div>
+      <div class="feature-card-desc">Step by step checklists for OPT, STEM OPT, H-1B, and Green Card filings with required documents</div>
+    </div>
+    <div class="feature-card anim-scale d6">
+      <div class="feature-card-icon">&#128176;</div>
+      <div class="feature-card-title">Tax Guide</div>
+      <div class="feature-card-desc">Personalized tax filing guidance based on visa type, country, treaty benefits, and residency status</div>
+    </div>
+    <div class="feature-card anim-scale d7">
+      <div class="feature-card-icon">&#128300;</div>
+      <div class="feature-card-title">What-If Simulator</div>
+      <div class="feature-card-desc">Change graduation date, STEM status, or country and instantly see how your entire timeline shifts</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 4: DEMO ==================== -->
+<div class="slide center-slide">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- SVG: Browser window illustration -->
+  <svg class="illustration" style="left:50%; top:55%; transform:translate(-50%,-50%); width:600px; height:400px; opacity:0.06" viewBox="0 0 600 400">
+    <rect x="10" y="10" width="580" height="380" rx="12" fill="none" stroke="rgba(0,212,170,0.8)" stroke-width="1.5"/>
+    <line x1="10" y1="45" x2="590" y2="45" stroke="rgba(0,212,170,0.5)" stroke-width="1"/>
+    <circle cx="32" cy="28" r="5" fill="rgba(239,68,68,0.4)"/>
+    <circle cx="50" cy="28" r="5" fill="rgba(245,158,11,0.4)"/>
+    <circle cx="68" cy="28" r="5" fill="rgba(34,197,94,0.4)"/>
+    <!-- Timeline mockup -->
+    <line x1="80" y1="70" x2="80" y2="360" stroke="rgba(0,212,170,0.3)" stroke-width="2"/>
+    <circle cx="80" cy="100" r="6" fill="rgba(0,212,170,0.4)"/>
+    <rect x="100" y="85" width="200" height="30" rx="6" fill="rgba(0,212,170,0.08)" stroke="rgba(0,212,170,0.2)" stroke-width="0.5"/>
+    <circle cx="80" cy="160" r="6" fill="rgba(245,158,11,0.4)"/>
+    <rect x="100" y="145" width="180" height="30" rx="6" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.2)" stroke-width="0.5"/>
+    <circle cx="80" cy="220" r="6" fill="rgba(0,212,170,0.3)"/>
+    <rect x="100" y="205" width="220" height="30" rx="6" fill="rgba(0,212,170,0.06)" stroke="rgba(0,212,170,0.15)" stroke-width="0.5"/>
+    <circle cx="80" cy="280" r="6" fill="rgba(100,116,139,0.3)"/>
+    <rect x="100" y="265" width="160" height="30" rx="6" fill="rgba(100,116,139,0.06)" stroke="rgba(100,116,139,0.15)" stroke-width="0.5"/>
+  </svg>
+
+  <span class="tag tag-teal anim-up d1">LIVE DEMO</span>
+  <h1 class="anim-up d2">Let's see it in action</h1>
+  <p class="subtitle anim-up d3">Full flow walkthrough: onboarding, timeline generation, risk alerts, AI chat, and the what-if simulator.</p>
+  <div class="anim-up d4" style="display:flex; align-items:center; gap:16px; justify-content:center">
+    <span class="visual-badge badge-live">DEPLOYED</span>
+    <p style="font-size:1.1rem; color:#00d4aa; font-weight:600">visapath-app.azurewebsites.net</p>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 5: ARCHITECTURE ==================== -->
+<div class="slide">
+  <div class="orb orb-1"></div>
+
+  <span class="tag tag-teal anim-up d1">HOW IT WORKS</span>
+  <h2 class="anim-up d2">Architecture</h2>
+  <div class="two-col">
+    <div class="anim-left d3">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-text"><strong>Student fills onboarding form</strong> with visa type, degree, STEM status, graduation date, country, career goal</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-text">Backend assembles prompt with <strong>56 hardcoded USCIS rules</strong>, filing fees, H-1B lottery stats, country backlogs</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-text"><strong>Gemini 2.5 Flash</strong> generates structured JSON timeline grounded in real rules, not training data</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-text"><strong>Risk engine</strong> analyzes for CPT overuse, country backlogs, wage-level lottery odds</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-text">Frontend renders <strong>interactive timeline</strong> with urgency colors, expandable cards, month grouping</div>
+      </div>
+    </div>
+    <div class="anim-right d4">
+      <h3 style="color:#00d4aa; margin-bottom:14px; font-size:0.85rem; text-transform:uppercase; letter-spacing:1.5px; font-weight:700">RAG Chat Pipeline</h3>
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-text"><strong>8 immigration docs</strong> split into 21 chunks, embedded with gemini-embedding-001 (768 dim)</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-text">Query embedded and matched via <strong>cosine similarity</strong> in ChromaDB (top k=4)</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-text">Retrieved chunks + user visa context sent to <strong>Gemini for grounded answer</strong></div>
+      </div>
+
+      <div style="margin-top:24px; padding:16px 20px; background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.15); border-radius:12px">
+        <h3 style="color:#f59e0b; margin-bottom:8px; font-size:0.8rem; text-transform:uppercase; letter-spacing:1.2px; font-weight:700">Key Design Decision</h3>
+        <p style="color:#94a3b8; font-size:0.9rem; line-height:1.6">We don't rely on AI training data for immigration rules. 56 hardcoded USCIS rules are injected into every prompt as ground truth.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 6: TECH STACK ==================== -->
+<div class="slide">
+  <div class="orb orb-2"></div>
+
+  <span class="tag tag-teal anim-up d1">TECH STACK</span>
+  <h2 class="anim-up d2">Built with</h2>
+  <div class="tech-grid anim-up d3">
+    <div class="tech-item">
+      <div class="tech-item-label">Frontend</div>
+      <div class="tech-item-value">React 19 + TypeScript</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-item-label">Styling</div>
+      <div class="tech-item-value">Tailwind CSS v4</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-item-label">Build Tool</div>
+      <div class="tech-item-value">Vite 7</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-item-label">Routing</div>
+      <div class="tech-item-value">React Router v7</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-item-label">Backend</div>
+      <div class="tech-item-value">Python 3.13 + FastAPI</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-item-label">AI Model</div>
+      <div class="tech-item-value">Gemini 2.5 Flash</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-item-label">Embeddings</div>
+      <div class="tech-item-value">gemini-embedding-001</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-item-label">Vector DB</div>
+      <div class="tech-item-value">ChromaDB + LangChain</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-item-label">Auth</div>
+      <div class="tech-item-value">JWT + bcrypt</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-item-label">Database</div>
+      <div class="tech-item-value">PostgreSQL</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-item-label">Cloud</div>
+      <div class="tech-item-value">Azure App Service</div>
+    </div>
+    <div class="tech-item">
+      <div class="tech-item-label">CI/CD</div>
+      <div class="tech-item-value">GitHub Actions</div>
+    </div>
+  </div>
+
+  <div class="anim-up d5" style="margin-top:20px; display:flex; align-items:center; gap:12px; padding:12px 20px; background:rgba(100,116,139,0.06); border:1px solid rgba(100,116,139,0.12); border-radius:12px; width:fit-content">
+    <span style="color:#64748b; font-size:0.85rem">Currently hosted on</span>
+    <span style="color:#fff; font-weight:700; font-size:0.9rem">RIT's free Azure for Students subscription</span>
+    <span style="color:#64748b; font-size:0.85rem">with GitHub Actions CI/CD</span>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 7: CHALLENGES ==================== -->
+<div class="slide">
+  <div class="orb orb-3"></div>
+
+  <!-- SVG: puzzle pieces -->
+  <svg class="illustration" style="right:30px; top:50%; transform:translateY(-50%); width:280px; height:280px" viewBox="0 0 200 200">
+    <path d="M30,50 L70,50 L70,40 Q80,30 90,40 L90,50 L130,50 L130,90 L140,90 Q150,100 140,110 L130,110 L130,150 L90,150 L90,160 Q80,170 70,160 L70,150 L30,150 Z" fill="none" stroke="rgba(245,158,11,0.25)" stroke-width="1.5"/>
+    <path d="M80,20 L120,20 L120,10 Q130,0 140,10 L140,20 L180,20 L180,60 L190,60 Q200,70 190,80 L180,80 L180,120 L140,120 L140,130 Q130,140 120,130 L120,120 L80,120 Z" fill="none" stroke="rgba(0,212,170,0.2)" stroke-width="1.5" transform="translate(0,40)"/>
+  </svg>
+
+  <span class="tag tag-amber anim-up d1">CHALLENGES</span>
+  <h2 class="anim-up d2">Real problems we're solving</h2>
+  <div style="max-width:850px">
+    <div class="anim-up d3" style="display:flex; gap:14px; margin-bottom:16px; align-items:flex-start">
+      <div style="width:32px; height:32px; border-radius:8px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.9rem">&#128680;</div>
+      <div><strong style="color:#fff; font-size:1.05rem">Students miss critical deadlines and lose their visa status</strong><br><span style="color:#94a3b8; font-size:0.95rem; line-height:1.6">The OPT filing window is only 150 days. Miss it by a single day and you lose work authorization in the US. There is no second chance. VisaPath tracks every deadline and alerts you weeks in advance.</span></div>
+    </div>
+    <div class="anim-up d4" style="display:flex; gap:14px; margin-bottom:16px; align-items:flex-start">
+      <div style="width:32px; height:32px; border-radius:8px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.9rem">&#128566;</div>
+      <div><strong style="color:#fff; font-size:1.05rem">Hidden rules that no one tells you about</strong><br><span style="color:#94a3b8; font-size:0.95rem; line-height:1.6">Using 12+ months of CPT permanently kills your OPT eligibility. India/China nationals face 10-30 year green card backlogs. The new wage-level H-1B lottery changes your odds based on salary. Our risk engine catches all of this.</span></div>
+    </div>
+    <div class="anim-up d5" style="display:flex; gap:14px; margin-bottom:16px; align-items:flex-start">
+      <div style="width:32px; height:32px; border-radius:8px; background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.9rem">&#128176;</div>
+      <div><strong style="color:#fff; font-size:1.05rem">Immigration advice costs $300+/hr and is still generic</strong><br><span style="color:#94a3b8; font-size:0.95rem; line-height:1.6">Lawyers give general guidance. DSO offices have limited hours. Reddit threads are outdated. VisaPath gives personalized, situation-specific timelines grounded in 56 real USCIS rules for free.</span></div>
+    </div>
+    <div class="anim-up d6" style="display:flex; gap:14px; align-items:flex-start">
+      <div style="width:32px; height:32px; border-radius:8px; background:rgba(0,212,170,0.1); border:1px solid rgba(0,212,170,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.9rem">&#127919;</div>
+      <div><strong style="color:#fff; font-size:1.05rem">Every student's immigration path is different</strong><br><span style="color:#94a3b8; font-size:0.95rem; line-height:1.6">A STEM student from India has a completely different timeline than a non-STEM MBA from Brazil. VisaPath generates a unique roadmap for each student based on their visa type, degree, country, and career goals.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 8: TRACTION ==================== -->
+<div class="slide">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <span class="tag tag-teal anim-up d1">TRACTION</span>
+  <h2 class="anim-up d2">Real students, real impact</h2>
+
+  <div class="anim-up d3" style="display:flex; gap:24px; margin-bottom:28px">
+    <div class="stat" style="flex:1">
+      <div class="stat-number">15+</div>
+      <div class="stat-label">Active users at RIT</div>
+    </div>
+    <div class="stat" style="flex:1">
+      <div class="stat-number">100%</div>
+      <div class="stat-label">F-1 international students</div>
+    </div>
+    <div class="stat" style="flex:1">
+      <div class="stat-number">11</div>
+      <div class="stat-label">STEM majors covered</div>
+    </div>
+    <div class="stat" style="flex:1">
+      <div class="stat-number">5&#9733;</div>
+      <div class="stat-label">Average user rating</div>
+    </div>
+  </div>
+
+  <div class="anim-up d4" style="display:flex; align-items:center; gap:12px; margin-bottom:24px">
+    <span style="color:#64748b; font-size:0.85rem">Active users</span>
+    <div class="user-avatars">
+      <div class="avatar" style="background:linear-gradient(135deg,#00d4aa,#0ea5e9)">AP</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">PS</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">RG</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">AR</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#f59e0b,#22c55e)">VS</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#ec4899,#8b5cf6)">NI</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#00d4aa,#6366f1)">AM</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#3b82f6,#00d4aa)">KN</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">SJ</div>
+      <div class="avatar avatar-more">+6</div>
+    </div>
+    <span style="color:#475569; font-size:0.8rem">Rochester Institute of Technology</span>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px">
+    <div class="testimonial anim-scale d5">
+      <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="testimonial-text">"I knew I had to file OPT before graduation, but VisaPath calculated my exact filing window down to the day and showed me I only had 23 days left. I was planning to file next month. That would have been too late."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar" style="background:linear-gradient(135deg,#00d4aa,#0ea5e9)">PS</div>
+        <div>
+          <div class="testimonial-name">Priya Sharma</div>
+          <div class="testimonial-role">MS Data Science, F-1</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial anim-scale d6">
+      <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="testimonial-text">"I used the what-if simulator to compare staying on OPT vs applying for H-1B through a cap-exempt employer. It showed me a path I didn't even know existed — skipping the lottery entirely through a university-affiliated research position."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">AR</div>
+        <div>
+          <div class="testimonial-name">Ananya Reddy</div>
+          <div class="testimonial-role">MS Bioinformatics, F-1</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial anim-scale d7">
+      <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="testimonial-text">"The tax guide told me India has a US tax treaty for students that most people don't claim. It also showed the exact forms I need as a dual-status filer. My CA friends had no idea about this either."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">SJ</div>
+        <div>
+          <div class="testimonial-name">Siddharth Joshi</div>
+          <div class="testimonial-role">MS Computer Science, F-1</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial anim-scale d8">
+      <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="testimonial-text">"The risk engine flagged that the H-1B lottery is switching to wage-level weighting in FY2027. As an entry-level hire, my odds drop significantly. VisaPath laid out alternate paths like the O-1B and EB-2 NIW that I hadn't considered."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">VS</div>
+        <div>
+          <div class="testimonial-name">Vikram Singh</div>
+          <div class="testimonial-role">MBA, F-1</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 9: BUSINESS MODEL ==================== -->
+<div class="slide">
+  <div class="orb orb-1"></div>
+
+  <span class="tag tag-teal anim-up d1">BUSINESS MODEL</span>
+  <h2 class="anim-up d2">How VisaPath becomes sustainable</h2>
+  <div class="feature-cards anim-up d3">
+    <div class="feature-card" style="text-align:center">
+      <div style="font-size:0.75rem; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:12px">Free Tier</div>
+      <div style="font-size:2rem; font-weight:900; color:#00d4aa; margin-bottom:14px">$0</div>
+      <div class="feature-card-desc" style="text-align:left">
+        5 timeline generations<br>
+        Basic risk alerts<br>
+        Document checklists
+      </div>
+    </div>
+    <div class="feature-card anim-glow" style="text-align:center; border-color:rgba(0,212,170,0.35)">
+      <div style="font-size:0.75rem; color:#00d4aa; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:12px">Pro</div>
+      <div style="font-size:2rem; font-weight:900; color:#00d4aa; margin-bottom:14px">$9.99<span style="font-size:0.9rem; color:#64748b; font-weight:500">/mo</span></div>
+      <div class="feature-card-desc" style="text-align:left">
+        Unlimited timelines<br>
+        AI chat assistant<br>
+        What-if simulator<br>
+        Tax guide<br>
+        Push notifications
+      </div>
+    </div>
+    <div class="feature-card" style="text-align:center; border-color:rgba(245,158,11,0.3)">
+      <div style="font-size:0.75rem; color:#f59e0b; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:12px">University</div>
+      <div style="font-size:2rem; font-weight:900; color:#f59e0b; margin-bottom:14px">$499<span style="font-size:0.9rem; color:#64748b; font-weight:500">/yr</span></div>
+      <div class="feature-card-desc" style="text-align:left">
+        DSO advisor dashboard<br>
+        Bulk student management<br>
+        Analytics &amp; reporting<br>
+        Priority support
+      </div>
+    </div>
+  </div>
+  <div class="stat-row anim-up d5" style="margin-top:24px">
+    <div class="stat" style="flex:1">
+      <div class="stat-number">1M+</div>
+      <div class="stat-label">TAM (international students in US)</div>
+    </div>
+    <div class="stat" style="flex:1">
+      <div class="stat-number">~400K</div>
+      <div class="stat-label">New F-1 students each year</div>
+    </div>
+    <div class="stat" style="flex:1">
+      <div class="stat-number">$500-2K</div>
+      <div class="stat-label">Avg. spend on immigration help</div>
+    </div>
+    <div class="stat" style="flex:1">
+      <div class="stat-number">0</div>
+      <div class="stat-label">Direct competitors doing AI timelines</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 10: PRIZE MONEY / INFRASTRUCTURE ==================== -->
+<div class="slide">
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <span class="tag tag-amber anim-up d1">IF WE WIN</span>
+  <h2 class="anim-up d2">How we'll invest the prize money</h2>
+
+  <!-- Current → Next infrastructure -->
+  <div class="migration-flow anim-up d3">
+    <div class="migration-box migration-box-current">
+      <div style="font-size:0.7rem; color:#64748b; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:8px">Current</div>
+      <div style="font-size:1.4rem; font-weight:800; color:#94a3b8; margin-bottom:4px">Azure Free Tier</div>
+      <div style="font-size:0.8rem; color:#475569">RIT student subscription<br>Free App Service (sleeps after 20 min)<br>Shared PostgreSQL</div>
+    </div>
+    <div class="migration-arrow">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00d4aa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </div>
+    <div class="migration-box migration-box-next">
+      <div style="font-size:0.7rem; color:#00d4aa; text-transform:uppercase; letter-spacing:1px; font-weight:700; margin-bottom:8px">Next</div>
+      <div style="font-size:1.4rem; font-weight:800; color:#fff; margin-bottom:4px">AWS Production</div>
+      <div style="font-size:0.8rem; color:#64748b">Always-on ECS containers<br>RDS PostgreSQL<br>CloudFront CDN + custom domain</div>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:20px">
+    <div class="feature-card anim-up d4" style="display:flex; align-items:flex-start; gap:14px">
+      <div style="font-size:1.8rem; font-weight:900; color:#00d4aa; flex-shrink:0; min-width:70px">$2,000</div>
+      <div>
+        <div style="color:#fff; font-weight:700; font-size:0.95rem; margin-bottom:4px">User acquisition at 10 universities</div>
+        <div style="color:#64748b; font-size:0.82rem; line-height:1.5">Campus ambassador program, partnerships with international student orgs, targeted outreach to DSO offices at top F-1 schools</div>
+      </div>
+    </div>
+    <div class="feature-card anim-up d5" style="display:flex; align-items:flex-start; gap:14px">
+      <div style="font-size:1.8rem; font-weight:900; color:#00d4aa; flex-shrink:0; min-width:70px">$1,500</div>
+      <div>
+        <div style="color:#fff; font-weight:700; font-size:0.95rem; margin-bottom:4px">AWS production infrastructure (12 months)</div>
+        <div style="color:#64748b; font-size:0.82rem; line-height:1.5">Always-on compute, managed database, CDN, custom domain, SSL. Enough runway to serve 1,000+ users reliably</div>
+      </div>
+    </div>
+    <div class="feature-card anim-up d6" style="display:flex; align-items:flex-start; gap:14px">
+      <div style="font-size:1.8rem; font-weight:900; color:#00d4aa; flex-shrink:0; min-width:70px">$1,000</div>
+      <div>
+        <div style="color:#fff; font-weight:700; font-size:0.95rem; margin-bottom:4px">AI API costs for first 1,000 users</div>
+        <div style="color:#64748b; font-size:0.82rem; line-height:1.5">Gemini API for timeline generation, chat, tax guide, and what-if simulations at scale without rate limiting users</div>
+      </div>
+    </div>
+    <div class="feature-card anim-up d7" style="display:flex; align-items:flex-start; gap:14px">
+      <div style="font-size:1.8rem; font-weight:900; color:#00d4aa; flex-shrink:0; min-width:70px">$500</div>
+      <div>
+        <div style="color:#fff; font-weight:700; font-size:0.95rem; margin-bottom:4px">Legal review of immigration content</div>
+        <div style="color:#64748b; font-size:0.82rem; line-height:1.5">Consultation with an immigration attorney to validate our 56 hardcoded USCIS rules and add proper legal disclaimers</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="anim-up d8" style="margin-top:20px; display:flex; justify-content:center; gap:24px">
+    <div class="stat" style="border-color:rgba(245,158,11,0.3); padding:18px 36px">
+      <div class="stat-number" style="color:#f59e0b; font-size:2.2rem">$5,000</div>
+      <div class="stat-label">12 months of runway to reach 1,000 users</div>
+    </div>
+    <div class="stat" style="padding:18px 36px">
+      <div class="stat-number" style="font-size:2.2rem">$5/user</div>
+      <div class="stat-label">Customer acquisition cost at scale</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 11: ROADMAP ==================== -->
+<div class="slide">
+  <div class="orb orb-1"></div>
+
+  <!-- SVG: Rocket illustration -->
+  <svg class="illustration" style="right:50px; top:50%; transform:translateY(-50%); width:250px; height:250px; opacity:0.08" viewBox="0 0 200 200">
+    <path d="M100,20 Q120,60 120,100 Q120,140 100,170 Q80,140 80,100 Q80,60 100,20 Z" fill="none" stroke="rgba(0,212,170,0.6)" stroke-width="2"/>
+    <circle cx="100" cy="90" r="12" fill="none" stroke="rgba(0,212,170,0.5)" stroke-width="1.5"/>
+    <path d="M80,130 L60,155 L80,145" fill="none" stroke="rgba(245,158,11,0.4)" stroke-width="1.5"/>
+    <path d="M120,130 L140,155 L120,145" fill="none" stroke="rgba(245,158,11,0.4)" stroke-width="1.5"/>
+    <path d="M90,170 Q100,195 110,170" fill="none" stroke="rgba(239,68,68,0.3)" stroke-width="2"/>
+    <path d="M95,172 Q100,190 105,172" fill="none" stroke="rgba(245,158,11,0.3)" stroke-width="1.5"/>
+  </svg>
+
+  <span class="tag tag-teal anim-up d1">WHAT'S NEXT</span>
+  <h2 class="anim-up d2">Future Roadmap</h2>
+  <div class="roadmap-items">
+    <div class="roadmap-item anim-up d3"><strong>1.</strong> Push notifications for upcoming deadlines (email + browser)</div>
+    <div class="roadmap-item anim-up d3"><strong>2.</strong> Support for J-1, L-1, O-1 visa types</div>
+    <div class="roadmap-item anim-up d4"><strong>3.</strong> Cap-exempt employer lookup database</div>
+    <div class="roadmap-item anim-up d4"><strong>4.</strong> Live USCIS processing time integration</div>
+    <div class="roadmap-item anim-up d5"><strong>5.</strong> University DSO advisor dashboard</div>
+    <div class="roadmap-item anim-up d5"><strong>6.</strong> React Native mobile app for iOS + Android</div>
+    <div class="roadmap-item anim-up d6"><strong>7.</strong> AWS migration for production-grade hosting</div>
+    <div class="roadmap-item anim-up d6"><strong>8.</strong> Partnerships with university international offices</div>
+  </div>
+</div>
+
+<!-- ==================== SLIDE 12: CLOSING ==================== -->
+<div class="slide center-slide">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="logo-area anim-up d1" style="justify-content:center">
+    <div class="logo-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00d4aa" stroke-width="2" stroke-linecap="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div class="logo-text">Visa<span>Path</span></div>
+  </div>
+  <h1 class="anim-up d2">Your immigration journey,<br>one clear timeline.</h1>
+  <p class="subtitle anim-up d3">Built for Nexora Hacks 2026 by Dileep Kumar Sharma</p>
+
+  <div class="anim-up d4" style="display:flex; align-items:center; gap:12px; justify-content:center; margin-bottom:28px">
+    <span class="visual-badge badge-live">LIVE NOW</span>
+    <span style="color:#64748b; font-size:0.9rem">15+ active users at RIT</span>
+  </div>
+
+  <div class="stat-row anim-up d5" style="justify-content:center">
+    <div class="stat">
+      <div style="font-size:1.4rem; margin-bottom:6px">&#127760;</div>
+      <div class="stat-label" style="color:#94a3b8; font-weight:600">visapath-app.azurewebsites.net</div>
+    </div>
+    <div class="stat">
+      <div style="font-size:1.4rem; margin-bottom:6px">&#128187;</div>
+      <div class="stat-label" style="color:#94a3b8; font-weight:600">github.com/Dileep2896/visapath</div>
+    </div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button onclick="prev()">&#8592;</button>
+  <button onclick="next()">&#8594;</button>
+</div>
+<div class="slide-counter"><span id="current">1</span> / <span id="total"></span></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let idx = 0;
+  const total = slides.length;
+  document.getElementById('total').textContent = total;
+  updateProgress();
+
+  function resetAnimations(slide) {
+    const animated = slide.querySelectorAll('[class*="anim-"]');
+    animated.forEach(el => {
+      el.style.animation = 'none';
+      el.offsetHeight; // trigger reflow
+      el.style.animation = '';
+    });
+  }
+
+  function show(i) {
+    slides.forEach(s => s.classList.remove('active'));
+    slides[i].classList.add('active');
+    resetAnimations(slides[i]);
+    document.getElementById('current').textContent = i + 1;
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const pct = ((idx + 1) / total) * 100;
+    document.getElementById('progressBar').style.width = pct + '%';
+  }
+
+  function next() { if (idx < total - 1) { idx++; show(idx); } }
+  function prev() { if (idx > 0) { idx--; show(idx); } }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+  });
+</script>
+</body>
+</html>
