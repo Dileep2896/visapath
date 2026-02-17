@@ -71,6 +71,10 @@ export interface UserInput {
   h1b_attempts?: number;
   unemployment_days?: number;
   has_job_offer?: boolean;
+  // New fields for better timeline accuracy
+  employer_is_cap_exempt?: boolean;
+  wage_level?: number;         // 1-4 for H-1B weighted lottery
+  opt_ead_end_date?: string;   // When OPT EAD expires (if active)
 }
 
 export interface AuthUser {

@@ -20,12 +20,15 @@ from app.data.immigration_rules import (
     CPT_RULES,
     F1_RULES,
     PROCESSING_TIMES,
+    FILING_FEES,
+    H1B_WAGE_LEVELS,
 )
 from app.data.country_backlogs import (
     EB_WAIT_TIMES,
     get_green_card_wait,
     get_country_category,
     BACKLOGGED_COUNTRIES,
+    H1B_LOTTERY_STATS,
 )
 from app.services.gemini_service import generate_structured_json_async
 
@@ -62,8 +65,6 @@ def _build_prompt(user_input: dict) -> str:
     is_stem = user_input.get("is_stem", False)
     degree_level = user_input.get("degree_level", "Master's")
     graduation = user_input.get("expected_graduation") or "not specified"
-    program_extended = user_input.get("program_extended", False)
-    original_graduation = user_input.get("original_graduation") or "N/A"
     cpt_months = user_input.get("cpt_months_used", 0)
     opt_status = user_input.get("opt_status", "none")
     career_goal = user_input.get("career_goal", "stay_us_longterm")
@@ -71,6 +72,9 @@ def _build_prompt(user_input: dict) -> str:
     unemployment_days = user_input.get("unemployment_days", 0)
     has_job_offer = user_input.get("has_job_offer", False)
     currently_employed = user_input.get("currently_employed", False)
+    employer_is_cap_exempt = user_input.get("employer_is_cap_exempt", False)
+    wage_level = user_input.get("wage_level", 1)
+    opt_ead_end_date = user_input.get("opt_ead_end_date") or "not specified"
 
     sections = []
 
@@ -86,13 +90,14 @@ def _build_prompt(user_input: dict) -> str:
 - Expected graduation: {graduation}
 - CPT months used (full-time): {cpt_months}
 - OPT status: {opt_status}
+- OPT EAD expiration date: {opt_ead_end_date}
 - Currently employed: {currently_employed}
 - Has job offer: {has_job_offer}
+- Employer is cap-exempt: {employer_is_cap_exempt}
+- Expected wage level: {wage_level} ({H1B_WAGE_LEVELS.get(wage_level, {}).get("label", "N/A")})
 - Unemployment days used: {unemployment_days}
 - Career goal: {career_goal}
 - Country of citizenship: {country} (category: {country_cat})
-- Program extended: {program_extended}
-- Original graduation: {original_graduation}
 - H-1B lottery attempts so far: {h1b_attempts}""")
 
     # --- 2. USCIS reference rules ---
@@ -106,7 +111,18 @@ Cap-Gap: {json.dumps(CAP_GAP_RULES)}
 F-1 General: {json.dumps(F1_RULES)}
 Processing times (months): {json.dumps(PROCESSING_TIMES)}""")
 
-    # --- 3. Country backlog data ---
+    # --- 3. USCIS filing fees (current 2025-2026) ---
+    sections.append(f"""\
+[USCIS FILING FEES — current as of 2025-2026]
+{json.dumps(FILING_FEES, indent=2)}
+IMPORTANT: Use these exact fee amounts in action items and descriptions.
+- OPT/STEM OPT EAD (I-765): ${FILING_FEES["i765_ead"]}
+- H-1B registration fee: ${FILING_FEES["h1b_registration"]} per beneficiary
+- H-1B petition (I-129): ${FILING_FEES["i129_h1b_petition"]} + additional employer fees
+- Premium processing (I-907): ${FILING_FEES["premium_processing"]}
+- I-140 Immigrant Petition: ${FILING_FEES["i140_immigrant_petition"]}""")
+
+    # --- 4. Country backlog data ---
     is_backlogged = country_cat in BACKLOGGED_COUNTRIES
     sections.append(f"""\
 [GREEN CARD BACKLOG DATA]
@@ -115,19 +131,29 @@ Backlogged country: {is_backlogged}
 EB wait times for {country_cat}: {json.dumps(EB_WAIT_TIMES.get(country_cat, EB_WAIT_TIMES["Rest of World"]))}
 EB-2 estimate: {gc_wait['wait_years_min']}-{gc_wait['wait_years_max']} years ({gc_wait['status']})""")
 
-    # --- 4. H-1B wage-level selection context ---
-    sections.append("""\
-[H-1B FY2027+ WAGE-LEVEL WEIGHTED SELECTION — effective Feb 27, 2026]
-Starting FY2027, USCIS uses wage-level weighted selection instead of random lottery:
+    # --- 5. H-1B lottery statistics and wage-level selection ---
+    sections.append(f"""\
+[H-1B LOTTERY STATISTICS & FY2027+ WAGE-LEVEL WEIGHTED SELECTION]
+Recent lottery stats: {json.dumps(H1B_LOTTERY_STATS, indent=2)}
+
+Starting FY2027 (registration March 2026, effective Feb 27, 2026), USCIS uses wage-level
+weighted selection instead of random lottery:
 - Level I (entry-level): 1 entry → ~48% LOWER selection probability
 - Level II (qualified): 2 entries → ~9% lower
 - Level III (experienced): 3 entries → ~40% higher
 - Level IV (fully competent): 4 entries → ~107% higher (doubled odds)
 - Employers must provide SOC code, OEWS wage level, and area of employment
-- US Master's cap registrants still get two chances
-- If relevant, advise the student to target higher wage-level positions for better lottery odds""")
+- US Master's cap registrants still get two chances (advanced degree + regular)
+- This user's expected wage level: {wage_level} ({H1B_WAGE_LEVELS.get(wage_level, {}).get("label", "N/A")})
+- If relevant, advise the student to target higher wage-level positions for better lottery odds
 
-    # --- 5. Comprehensive timeline generation rules ---
+CAP-EXEMPT EMPLOYERS:
+- Universities, nonprofit affiliates of universities, nonprofit research orgs, and
+  government research orgs are EXEMPT from the H-1B cap. No lottery needed.
+- This user's employer is cap-exempt: {employer_is_cap_exempt}
+- If cap-exempt, skip lottery events entirely and instead show direct H-1B petition timeline.""")
+
+    # --- 6. Comprehensive timeline generation rules ---
     rules = f"""\
 [TIMELINE GENERATION RULES — follow ALL of these strictly]
 
@@ -138,73 +164,82 @@ GENERAL:
 4. Mark events whose date < today with is_past: true.
 5. Urgency mapping: <= 7 days = "critical", <= 30 days = "high", <= 90 days = "medium", > 90 days = "low", past = "passed".
 6. Include the program start date as a milestone (is_past: true if in the past).
+7. Include EXACT filing fees in action items (e.g., "File I-765 — filing fee: $580").
 
-GRADUATION & PROGRAM EXTENSION:
-7. If program_extended is true: show "Original Graduation Date (Before Extension)" as a past milestone with original_graduation date, AND "New Expected Graduation (Extended)" with expected_graduation date. Clearly state that ALL OPT deadlines use the NEW date and OPT duration (12mo + STEM 24mo) is NOT reduced.
-8. If program_extended is false: show "Expected Graduation" with expected_graduation date.
-9. In graduation event description, note that key immigration deadlines are calculated from this date.
+GRADUATION:
+8. Show "Expected Graduation" with expected_graduation date.
+9. In graduation event description, note that key immigration deadlines (OPT, STEM OPT, H-1B) are all calculated from this date.
+10. OPT always starts after graduation regardless of program history — focus on the graduation date provided.
 
 CPT:
-10. If cpt_months_used >= 12: add a CRITICAL risk event AND risk alert — user is INELIGIBLE for OPT. Skip all OPT events. Suggest direct H-1B or alternative pathways.
-11. If cpt_months_used >= 9 but < 12: add a WARNING risk alert about approaching the 12-month OPT ineligibility threshold.
-12. If cpt_months_used > 0 and user is currently employed on CPT, mention that converting CPT to full-time counts toward the 12-month limit and could affect OPT eligibility. Include action items about tracking CPT months carefully.
+11. If cpt_months_used >= 12: add a CRITICAL risk event AND risk alert — user is INELIGIBLE for OPT. Skip all OPT events. Suggest direct H-1B or alternative pathways.
+12. If cpt_months_used >= 9 but < 12: add a WARNING risk alert about approaching the 12-month OPT ineligibility threshold.
+13. If cpt_months_used > 0 and user is currently employed on CPT, mention that converting CPT to full-time counts toward the 12-month limit and could affect OPT eligibility. Include action items about tracking CPT months carefully.
 
 OPT APPLICATION:
-13. OPT application window opens 90 days BEFORE graduation. Include this as a deadline event with specific action items (I-765, DSO recommendation, photos, I-94, copies).
-14. "Recommended OPT Application Date" = about 75-80 days before graduation (apply ASAP after window opens).
-15. OPT application DEADLINE = 60 days AFTER graduation. Mark as CRITICAL. Missing this = losing OPT entirely.
-16. Skip OPT application events if opt_status is "applied" or "active". If "applied", add a "pending" milestone.
+14. OPT application window opens 90 days BEFORE graduation. Include this as a deadline event with specific action items (I-765 with $580 fee, DSO recommendation, photos, I-94, copies).
+15. "Recommended OPT Application Date" = about 75-80 days before graduation (apply ASAP after window opens).
+16. OPT application DEADLINE = 60 days AFTER graduation. Mark as CRITICAL. Missing this = losing OPT entirely.
+17. Skip OPT application events if opt_status is "applied" or "active". If "applied", add a "pending" milestone.
 
 OPT PERIOD:
-17. OPT starts the day after graduation (12-month period). Note 90-day unemployment limit.
-18. OPT expires 12 months after graduation. Mark as critical deadline.
-19. If unemployed, track unemployment days: max {OPT_RULES["unemployment_limit_days"]} days for regular OPT, {STEM_OPT_RULES["unemployment_limit_days"]} days for STEM OPT.
-20. Add unemployment warning events if unemployment_days > 0.
+18. OPT starts the day after graduation (12-month period). Note 90-day unemployment limit.
+19. OPT expires 12 months after graduation. Mark as critical deadline.
+20. If OPT EAD end date is provided ("{opt_ead_end_date}"), use it as the exact expiration date instead of calculating from graduation.
+21. If unemployed, track unemployment days: max {OPT_RULES["unemployment_limit_days"]} days for regular OPT, {STEM_OPT_RULES["unemployment_limit_days"]} days for STEM OPT.
+22. Add unemployment warning events if unemployment_days > 0.
 
 STEM OPT:
-21. Skip STEM OPT entirely if is_stem is false.
-22. STEM OPT application deadline = the OPT expiration date (must file BEFORE OPT expires).
-23. Recommend applying at least 90 days before OPT expires.
-24. STEM OPT = 24 additional months. Employer MUST be E-Verify registered.
-25. STEM OPT expiration = 36 months total after graduation.
+23. Skip STEM OPT entirely if is_stem is false.
+24. STEM OPT application deadline = the OPT expiration date (must file BEFORE OPT expires).
+25. Recommend applying at least 90 days before OPT expires.
+26. STEM OPT = 24 additional months. Employer MUST be E-Verify registered.
+27. STEM OPT expiration = 36 months total after graduation.
+28. Mention I-983 Training Plan (no fee) and employer reporting requirements every 6 months.
 
-H-1B LOTTERY:
-26. Skip H-1B events if career_goal is "return_home".
-27. Do NOT include H-1B events if graduation is more than 6 months from today — too early.
-28. Include at most ONE upcoming H-1B lottery cycle (the next March registration after today).
-29. H-1B registration period: March 1-31 each year. Results: ~April 1. Start date: October 1.
-30. FY label = year + 1 (e.g., March 2026 registration = FY2027).
-31. If registration occurs BEFORE graduation: explain that employer CAN register before graduation, and if selected the student graduates → starts OPT → transitions to H-1B Oct 1 via cap-gap extension.
-32. For Master's/PhD: note dual lottery advantage (advanced degree + regular cap).
-33. If h1b_attempts > 0: note this is attempt #{h1b_attempts + 1} and each lottery is independent (~25-30%).
-34. If h1b_attempts >= 3: add a milestone suggesting alternative pathways (EB-1A, O-1, L-1, EB-2 NIW).
-35. Include the new FY2027+ wage-level weighted selection context — advise targeting higher wage levels.
+H-1B:
+29. Skip H-1B events if career_goal is "return_home".
+30. Do NOT include H-1B events if graduation is more than 6 months from today — too early.
+31. If employer is cap-exempt: skip lottery entirely. Show direct H-1B petition timeline (employer files I-129, no cap, can file anytime). This is a HUGE advantage — highlight it.
+32. If employer is NOT cap-exempt: include the next upcoming H-1B lottery cycle (March registration).
+33. H-1B registration period: March 1-31 each year. $215 registration fee. Results: ~April 1. Start date: October 1.
+34. FY label = year + 1 (e.g., March 2026 registration = FY2027).
+35. If registration occurs BEFORE graduation: explain that employer CAN register before graduation, and if selected the student graduates → starts OPT → transitions to H-1B Oct 1 via cap-gap extension.
+36. For Master's/PhD: note dual lottery advantage (advanced degree + regular cap).
+37. If h1b_attempts > 0: note this is attempt #{h1b_attempts + 1} and each lottery is independent.
+38. If h1b_attempts >= 3: add a milestone suggesting alternative pathways (EB-1A, O-1, L-1, EB-2 NIW).
+39. For FY2027+ lottery (March 2026 onwards), use the wage-level weighted selection context:
+    - This user's wage level: {wage_level}
+    - Level I gets ~48% lower odds, Level IV gets ~107% higher odds
+    - Advise accordingly — if Level I, warn about significantly reduced odds and suggest strategies.
 
 CAP-GAP:
-36. If student has pending/approved H-1B with Oct 1 start and OPT is expiring: mention cap-gap automatic extension April 1 to October 1.
+40. If student has pending/approved H-1B with Oct 1 start and OPT is expiring: mention cap-gap automatic extension April 1 to October 1.
 
 GREEN CARD:
-37. Skip green card events if career_goal is "return_home".
-38. Estimate green card process start ~2 years after graduation.
-39. Include country-specific wait time information. For backlogged countries (India, China), emphasize the long wait and suggest EB-1/O-1 alternatives.
+41. Skip green card events if career_goal is "return_home".
+42. Estimate green card process start ~2 years after graduation.
+43. Include country-specific wait time information. For backlogged countries (India, China), emphasize the long wait and suggest EB-1/O-1 alternatives.
+44. Mention PERM labor certification timeline: 8-18 months for recruitment + filing.
 
 JOB SEARCH:
-40. If no job offer and graduation is 3-6 months away: add "Begin Job Search" milestone with networking/application action items.
-41. If no job offer and on active OPT: add job search urgency milestone.
-42. If has job offer: add "Employer H-1B Preparation" milestone.
+45. If no job offer and graduation is 3-6 months away: add "Begin Job Search" milestone with networking/application action items.
+46. If no job offer and on active OPT: add job search urgency milestone.
+47. If has job offer: add "Employer H-1B Preparation" milestone.
 
 RISK ALERTS (separate from timeline events):
-43. Only include risks that ACTUALLY apply to this user's current profile. Be specific, not generic.
-44. Always include: country backlog risk (if backlogged), H-1B lottery uncertainty (if applicable), CPT overuse (if near limit).
-45. If program_extended: add risk about needing updated I-20.
-46. If on OPT and unemployed: add unemployment tracking risk.
-47. If h1b_attempts >= 3: add multiple lottery failure risk.
-48. If no job offer and OPT ending within 120 days: add critical/high no-job-offer risk.
-49. If non-STEM and career_goal is stay_us_longterm: add risk about limited OPT period and single H-1B lottery window."""
+48. Only include risks that ACTUALLY apply to this user's current profile. Be specific, not generic.
+49. Always include: country backlog risk (if backlogged), H-1B lottery uncertainty (if applicable), CPT overuse (if near limit).
+50. If on OPT and unemployed: add unemployment tracking risk.
+52. If h1b_attempts >= 3: add multiple lottery failure risk.
+53. If no job offer and OPT ending within 120 days: add critical/high no-job-offer risk.
+54. If non-STEM and career_goal is stay_us_longterm: add risk about limited OPT period and single H-1B lottery window.
+55. If wage_level == 1 and H-1B lottery is relevant: add warning about significantly lower selection odds under new weighted system.
+56. If employer is cap-exempt: add positive "info" alert noting they don't need to worry about the lottery."""
 
     sections.append(rules)
 
-    # --- 6. Output schema ---
+    # --- 7. Output schema ---
     sections.append("""\
 [OUTPUT JSON SCHEMA — follow exactly]
 {

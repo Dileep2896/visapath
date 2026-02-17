@@ -173,6 +173,13 @@ function MajorPicker({ value, onChange }: { value: string; onChange: (v: string)
   );
 }
 
+const WAGE_LEVELS = [
+  { value: 1, label: 'Level I — Entry', desc: 'New grads / entry-level' },
+  { value: 2, label: 'Level II — Qualified', desc: '2-5 years experience' },
+  { value: 3, label: 'Level III — Experienced', desc: '5-10 years / mid-career' },
+  { value: 4, label: 'Level IV — Senior', desc: '10+ years / fully competent' },
+];
+
 const DEFAULTS: UserInput = {
   visa_type: 'F-1',
   degree_level: "Master's",
@@ -190,6 +197,9 @@ const DEFAULTS: UserInput = {
   h1b_attempts: 0,
   unemployment_days: 0,
   has_job_offer: false,
+  employer_is_cap_exempt: false,
+  wage_level: 1,
+  opt_ead_end_date: '',
 };
 
 export default function OnboardingForm({ onSubmit, loading, initialData, initialStep, onSaveDraft }: OnboardingFormProps) {
@@ -239,9 +249,6 @@ export default function OnboardingForm({ onSubmit, loading, initialData, initial
       if (!data.expected_graduation) newErrors.expected_graduation = 'Please enter your expected graduation date';
       if (data.program_start && data.expected_graduation && data.program_start >= data.expected_graduation) {
         newErrors.expected_graduation = 'Graduation must be after program start';
-      }
-      if (data.program_extended && !data.original_graduation) {
-        newErrors.original_graduation = 'Please enter your original graduation date';
       }
     }
 
@@ -458,39 +465,6 @@ export default function OnboardingForm({ onSubmit, loading, initialData, initial
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Was your program extended?
-                </label>
-                <div className="flex gap-2">
-                  {[true, false].map(val => (
-                    <button
-                      key={String(val)}
-                      onClick={() => update('program_extended', val)}
-                      className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all border cursor-pointer ${
-                        data.program_extended === val
-                          ? 'bg-teal-400/10 border-teal-400 text-teal-400'
-                          : 'bg-navy-800 border-navy-700 text-slate-300 hover:border-navy-600'
-                      }`}
-                    >
-                      {val ? 'Yes' : 'No'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {data.program_extended && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Original Graduation Date (before extension)
-                  </label>
-                  <DatePicker
-                    value={data.original_graduation || ''}
-                    onChange={v => update('original_graduation', v)}
-                    placeholder="Select original date"
-                  />
-                  {errors.original_graduation && <p className="text-red-400 text-xs mt-1">{errors.original_graduation}</p>}
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
                   Do you have a job or job offer?
                 </label>
                 <div className="flex gap-2">
@@ -538,6 +512,22 @@ export default function OnboardingForm({ onSubmit, loading, initialData, initial
                   ))}
                 </div>
               </div>
+              {/* OPT EAD expiration — only when OPT is active */}
+              {data.opt_status === 'active' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    When does your OPT EAD expire?
+                  </label>
+                  <DatePicker
+                    value={data.opt_ead_end_date || ''}
+                    onChange={v => update('opt_ead_end_date', v)}
+                    placeholder="Select EAD expiry date"
+                  />
+                  <p className="text-xs text-slate-500 mt-1.5">
+                    Find this on your EAD card — it's the "Card Expires" date
+                  </p>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Unemployment days used (during OPT)
@@ -564,6 +554,59 @@ export default function OnboardingForm({ onSubmit, loading, initialData, initial
                   onChange={v => update('h1b_attempts', v)}
                   suffix={data.h1b_attempts === 1 ? ' attempt' : ' attempts'}
                 />
+              </div>
+              {/* Cap-exempt employer */}
+              {data.has_job_offer && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Is your employer cap-exempt?
+                  </label>
+                  <p className="text-xs text-slate-500 mb-2">
+                    Universities, nonprofit research orgs, and government research labs are exempt from the H-1B lottery
+                  </p>
+                  <div className="flex gap-2">
+                    {[true, false].map(val => (
+                      <button
+                        key={String(val)}
+                        onClick={() => update('employer_is_cap_exempt', val)}
+                        className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all border cursor-pointer ${
+                          data.employer_is_cap_exempt === val
+                            ? 'bg-teal-400/10 border-teal-400 text-teal-400'
+                            : 'bg-navy-800 border-navy-700 text-slate-300 hover:border-navy-600'
+                        }`}
+                      >
+                        {val ? 'Yes, cap-exempt' : 'No / Not sure'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Wage level for H-1B weighted lottery */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Expected salary level
+                </label>
+                <p className="text-xs text-slate-500 mb-3">
+                  Starting FY2027, H-1B lottery is weighted by wage level — higher levels get better odds
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {WAGE_LEVELS.map(({ value, label, desc }) => (
+                    <button
+                      key={value}
+                      onClick={() => update('wage_level', value)}
+                      className={`px-3 py-2.5 rounded-lg text-left transition-all border cursor-pointer ${
+                        data.wage_level === value
+                          ? 'bg-teal-400/10 border-teal-400'
+                          : 'bg-navy-800 border-navy-700 hover:border-navy-600'
+                      }`}
+                    >
+                      <span className={`text-sm font-medium block ${data.wage_level === value ? 'text-teal-400' : 'text-slate-300'}`}>
+                        {label}
+                      </span>
+                      <span className="text-[11px] text-slate-500">{desc}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}

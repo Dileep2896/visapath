@@ -58,6 +58,10 @@ class TimelineRequest(BaseModel):
     h1b_attempts: int = Field(default=0, ge=0, le=10)
     unemployment_days: int = Field(default=0, ge=0, le=365)
     has_job_offer: bool = False
+    # New fields for better timeline accuracy
+    employer_is_cap_exempt: bool = False
+    wage_level: int = Field(default=1, ge=1, le=4)
+    opt_ead_end_date: str = Field(default="", max_length=10)
 
 
 @router.post("/generate-timeline")

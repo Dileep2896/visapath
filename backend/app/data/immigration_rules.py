@@ -1,4 +1,8 @@
-"""Hard-coded immigration rules, timelines, and logic constants."""
+"""Hard-coded immigration rules, timelines, and logic constants.
+
+Updated: February 2026 with current USCIS fees, processing times,
+and recent regulatory changes.
+"""
 
 # OPT Rules
 OPT_RULES = {
@@ -45,6 +49,12 @@ H1B_RULES = {
     "requires_specialty_occupation": True,
     "requires_bachelor_or_higher": True,
     "employer_must_petition": True,
+    "cap_exempt_employers": [
+        "universities",
+        "nonprofit_affiliated_with_university",
+        "nonprofit_research_organizations",
+        "government_research_organizations",
+    ],
 }
 
 # Cap-Gap Rules
@@ -104,16 +114,43 @@ VISA_TYPES = {
     },
 }
 
-# Processing Times (approximate, in months)
+# USCIS Filing Fees (as of 2025-2026)
+FILING_FEES = {
+    "i765_ead": 580,  # OPT / STEM OPT EAD application
+    "i129_h1b_petition": 780,  # H-1B petition base fee
+    "h1b_registration": 215,  # H-1B electronic registration (per beneficiary)
+    "h1b_asylum_program_fee": 600,  # Asylum Program Fee for H-1B (employers with 25+ employees)
+    "h1b_asylum_program_fee_small": 300,  # Asylum Program Fee (employers with <25 employees)
+    "h1b_fraud_prevention_fee": 500,  # Fraud Prevention and Detection Fee
+    "h1b_acwia_fee_large": 1500,  # ACWIA fee (25+ employees)
+    "h1b_acwia_fee_small": 750,  # ACWIA fee (<25 employees)
+    "premium_processing": 2805,  # I-907 Premium Processing
+    "i140_immigrant_petition": 715,  # I-140 Immigrant Worker Petition
+    "i485_adjustment_of_status": 1440,  # I-485 (includes biometrics)
+    "i131_advance_parole": 630,  # Travel document
+    "i983_training_plan": 0,  # No fee for I-983
+}
+
+# Processing Times (approximate, in months) — updated 2025-2026
 PROCESSING_TIMES = {
     "opt_ead": {"min": 3, "max": 5},
     "stem_opt_ead": {"min": 3, "max": 5},
-    "h1b_regular": {"min": 3, "max": 6},
-    "h1b_premium": {"min": 0.5, "max": 0.5},
-    "i140_regular": {"min": 6, "max": 12},
+    "h1b_regular": {"min": 3, "max": 8},
+    "h1b_premium": {"min": 0.5, "max": 0.5},  # 15 business days
+    "i140_regular": {"min": 6, "max": 18},
     "i140_premium": {"min": 0.5, "max": 0.5},
-    "i485": {"min": 8, "max": 24},
+    "i485": {"min": 8, "max": 36},
+    "h1b_registration_to_results": {"min": 0.5, "max": 1},  # March to late March/April
+    "perm_labor_cert": {"min": 8, "max": 18},
 }
 
 # Degree Levels
 DEGREE_LEVELS = ["Associate", "Bachelor's", "Master's", "PhD"]
+
+# H-1B Wage Level Descriptions (for FY2027+ weighted lottery)
+H1B_WAGE_LEVELS = {
+    1: {"label": "Level I (Entry)", "lottery_entries": 1, "description": "Entry-level / new graduates"},
+    2: {"label": "Level II (Qualified)", "lottery_entries": 2, "description": "2-5 years experience"},
+    3: {"label": "Level III (Experienced)", "lottery_entries": 3, "description": "5-10 years / mid-career"},
+    4: {"label": "Level IV (Fully Competent)", "lottery_entries": 4, "description": "10+ years / senior"},
+}

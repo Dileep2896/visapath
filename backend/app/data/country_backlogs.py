@@ -1,6 +1,7 @@
 """Green card backlog data by country and category.
 
 Based on USCIS Visa Bulletin data. Wait times are approximate.
+Updated February 2026.
 """
 
 # EB (Employment-Based) Green Card Wait Times in years
@@ -46,14 +47,25 @@ def get_green_card_wait(country: str, category: str = "EB-2") -> dict:
 
 # H-1B Lottery Statistics (recent years)
 H1B_LOTTERY_STATS = {
-    "2024": {
+    "FY2024": {
         "registrations": 758994,
         "selected": 188400,
         "selection_rate_percent": 24.8,
+        "note": "Random lottery (last year before weighted system)",
     },
-    "2025": {
+    "FY2025": {
         "registrations": 470000,
         "selected": 120000,
         "selection_rate_percent": 25.5,
+        "note": "Beneficiary-centric registration (reduced fraud/duplicates)",
+    },
+    "FY2026": {
+        "registrations": 400000,
+        "selected": 110000,
+        "selection_rate_percent": 27.5,
+        "note": "Beneficiary-centric, reduced duplicates, $215 registration fee",
+    },
+    "FY2027": {
+        "note": "First year with wage-level weighted selection (effective Feb 27, 2026). Higher wage levels get more lottery entries.",
     },
 }
