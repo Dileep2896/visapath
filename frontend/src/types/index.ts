@@ -44,6 +44,8 @@ export interface DocumentItem {
   name: string;
   description: string;
   where_to_get: string;
+  url?: string;
+  tip?: string;
 }
 
 export interface DocumentStep {
