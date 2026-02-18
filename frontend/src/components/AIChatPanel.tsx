@@ -57,12 +57,12 @@ export default function AIChatPanel({ userContext }: AIChatPanelProps) {
 
   return (
     <div className="flex flex-col h-full max-w-3xl mx-auto">
-      <div className="p-6 pb-0">
+      <div className="p-4 sm:p-6 pb-0">
         <h2 className="text-lg font-semibold text-white font-heading">AI Immigration Advisor</h2>
         <p className="text-sm text-slate-400 mt-1">Answers grounded in official USCIS documentation</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex gap-3 animate-fade-in-up ${msg.role === 'user' ? 'justify-end' : ''}`}>
             {msg.role === 'assistant' && (
@@ -125,7 +125,7 @@ export default function AIChatPanel({ userContext }: AIChatPanelProps) {
         )}
       </div>
 
-      <div className="p-6 pt-0">
+      <div className="p-4 sm:p-6 pt-0">
         <div className="flex gap-2">
           <input
             type="text"
@@ -133,6 +133,7 @@ export default function AIChatPanel({ userContext }: AIChatPanelProps) {
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSend()}
             placeholder="Ask about your immigration situation..."
+            enterKeyHint="send"
             className="flex-1 bg-navy-800 border border-navy-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-teal-400 transition-colors"
             disabled={loading}
           />

@@ -156,7 +156,7 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
       </div>
 
       {/* Right panel — auth form */}
-      <div className="flex-1 flex items-center justify-center p-6 relative">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 relative">
         <div className="absolute inset-0 pointer-events-none lg:hidden">
           <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-teal-400/[0.04] rounded-full blur-3xl" />
         </div>

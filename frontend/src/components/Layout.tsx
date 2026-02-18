@@ -47,15 +47,15 @@ export default function Layout({ showNav, children, userEmail, onLogout, onReset
           {/* Mobile overlay */}
           {mobileOpen && (
             <div
-              className="md:hidden fixed inset-0 z-30 bg-black/50"
+              className="md:hidden fixed inset-0 z-40 bg-black/50"
               onClick={() => setMobileOpen(false)}
             />
           )}
 
           {/* Sidebar */}
           <aside className={`
-            fixed md:static z-30 top-0 bottom-0 left-0
-            w-64 bg-navy-900 border-r border-navy-700 flex flex-col shrink-0
+            fixed md:static z-50 top-0 bottom-0 left-0
+            w-[270px] max-w-[80vw] md:w-64 md:max-w-none bg-navy-900 border-r border-navy-700 flex flex-col shrink-0
             transition-transform duration-300 ease-in-out
             ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
             md:translate-x-0
