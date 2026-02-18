@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AuthScreen from '../components/AuthScreen';
-import { getMe } from '../utils/api';
+import { getMe, demoLogin } from '../utils/api';
 import type { AuthUser, UserInput } from '../types';
 import usePageTitle from '../hooks/usePageTitle';
 
@@ -30,5 +30,10 @@ export default function LoginPage() {
     setUser(authUser);
   }
 
-  return <AuthScreen onAuth={handleAuth} />;
+  async function handleDemo() {
+    const authUser = await demoLogin();
+    await handleAuth(authUser);
+  }
+
+  return <AuthScreen onAuth={handleAuth} onDemo={handleDemo} />;
 }

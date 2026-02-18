@@ -78,6 +78,20 @@ export async function login(email: string, password: string): Promise<AuthUser> 
   return data;
 }
 
+export async function demoLogin(): Promise<AuthUser> {
+  const res = await fetchWithTimeout(`${API_BASE}/auth/demo-login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.detail || 'Demo login failed');
+  }
+  const data = await res.json();
+  setToken(data.token);
+  return data;
+}
+
 export async function getMe(): Promise<{ id: number; email: string; profile: UserInput | null; cached_timeline: TimelineResponse | null; cached_tax_guide: Record<string, unknown> | null; is_admin?: boolean } | null> {
   const token = getToken();
   if (!token) return null;

@@ -1,16 +1,19 @@
 """Authentication API routes."""
 
+import os
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from app.services.auth_service import register_user, login_user, validate_email
+from app.services.auth_service import register_user, login_user, validate_email, create_token
 from app.dependencies import get_current_user, get_admin_user
 from app.database import (
     save_timeline, get_user_timelines, save_user_profile,
     save_cached_timeline, save_cached_tax_guide, get_all_users,
     delete_user, update_user_credits, update_user_email, update_user_credit_limit,
-    update_user_created_at,
+    update_user_created_at, get_user_by_email,
 )
 from app.rate_limit import rate_limit_auth
+
+DEMO_EMAIL = os.environ.get("DEMO_EMAIL", "demo@visapath.app")
 
 router = APIRouter()
 
@@ -55,6 +58,16 @@ async def login(request: AuthRequest):
         return result
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
+
+
+@router.post("/auth/demo-login")
+async def demo_login():
+    """Login as demo user (no password required). For hackathon judges."""
+    user = get_user_by_email(DEMO_EMAIL)
+    if not user:
+        raise HTTPException(status_code=404, detail="Demo account not configured")
+    token = create_token(user["id"])
+    return {"id": user["id"], "email": user["email"], "token": token, "is_admin": False}
 
 
 @router.get("/auth/me")

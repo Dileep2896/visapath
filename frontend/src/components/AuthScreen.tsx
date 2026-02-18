@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2, Mail, Lock, ArrowRight, Shield, Clock, Sparkles, BarChart3, ScanEye, EyeOff } from 'lucide-react';
+import { Loader2, Mail, Lock, ArrowRight, Shield, Clock, Sparkles, BarChart3, ScanEye, EyeOff, Play } from 'lucide-react';
 import type { AuthUser } from '../types';
 import { register, login } from '../utils/api';
 import { toast } from './Toast';
@@ -7,6 +7,7 @@ import Logo from './Logo';
 
 interface AuthScreenProps {
   onAuth: (user: AuthUser) => void;
+  onDemo?: () => Promise<void>;
 }
 
 const FEATURES = [
@@ -32,13 +33,30 @@ const FEATURES = [
   },
 ];
 
-export default function AuthScreen({ onAuth }: AuthScreenProps) {
+export default function AuthScreen({ onAuth, onDemo }: AuthScreenProps) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  async function handleDemo() {
+    if (!onDemo || demoLoading) return;
+    setDemoLoading(true);
+    setError('');
+    try {
+      await onDemo();
+      toast('Welcome to the demo!', 'success');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Demo login failed';
+      setError(msg);
+      toast(msg, 'error');
+    } finally {
+      setDemoLoading(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -245,6 +263,27 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
                   {showPassword ? <EyeOff size={16} /> : <ScanEye size={16} />}
                 </button>
               </div>
+              {mode === 'register' && password.length > 0 && (() => {
+                const has8 = password.length >= 8;
+                const hasNum = /\d/.test(password);
+                const hasLetter = /[a-zA-Z]/.test(password);
+                const score = (has8 ? 1 : 0) + (hasNum ? 1 : 0) + (hasLetter ? 1 : 0);
+                const color = score <= 1 ? 'bg-red-400' : score === 2 ? 'bg-amber-400' : 'bg-teal-400';
+                return (
+                  <div className="mt-2 space-y-1.5">
+                    <div className="flex gap-1">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= score ? color : 'bg-navy-700'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 text-[10px]">
+                      <span className={has8 ? 'text-teal-400' : 'text-slate-500'}>8+ chars {has8 ? '✓' : ''}</span>
+                      <span className={hasLetter ? 'text-teal-400' : 'text-slate-500'}>Letter {hasLetter ? '✓' : ''}</span>
+                      <span className={hasNum ? 'text-teal-400' : 'text-slate-500'}>Number {hasNum ? '✓' : ''}</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {error && (
@@ -272,6 +311,34 @@ export default function AuthScreen({ onAuth }: AuthScreenProps) {
               )}
             </button>
           </form>
+
+          {onDemo && (
+            <div className="mt-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-1 h-px bg-navy-700" />
+                <span className="text-xs text-slate-500 font-medium">or</span>
+                <div className="flex-1 h-px bg-navy-700" />
+              </div>
+              <button
+                type="button"
+                onClick={handleDemo}
+                disabled={demoLoading || loading}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm transition-all cursor-pointer disabled:opacity-50 border border-teal-400/25 text-teal-400 hover:bg-teal-400/10 hover:border-teal-400/40"
+              >
+                {demoLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Loading demo...
+                  </>
+                ) : (
+                  <>
+                    <Play size={16} />
+                    Try Demo — No signup needed
+                  </>
+                )}
+              </button>
+            </div>
+          )}
 
           <p className="text-center text-[11px] text-slate-600 mt-8">
             VisaPath provides general immigration information only.<br />
