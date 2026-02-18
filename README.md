@@ -5,7 +5,7 @@
 An AI powered web app that helps international students in the US track every visa deadline, risk, and milestone in one personalized timeline.
 
 **Live Demo:** [visapath-app.azurewebsites.net](https://visapath-app.azurewebsites.net)
-**Demo Video:** _[YouTube link coming soon]_
+**Demo Video:** [YouTube](https://youtu.be/ejIOkEDnoI4?si=jHOBLycsot6GJ3yp)
 
 ## Screenshots
 
