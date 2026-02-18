@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import RequireAuth from './components/routes/RequireAuth';
 import RequireOnboarded from './components/routes/RequireOnboarded';
 import RequireAdmin from './components/routes/RequireAdmin';
@@ -51,6 +51,7 @@ export default function App() {
               </Route>
             </Route>
           </Route>
+          <Route path="/" element={<Navigate to="/timeline" replace />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
