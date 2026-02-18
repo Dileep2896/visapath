@@ -32,7 +32,16 @@ export default function LoginPage() {
 
   async function handleDemo() {
     const authUser = await demoLogin();
-    await handleAuth(authUser);
+    // Inline auth flow for demo: skip _draft_step so demo always goes to timeline
+    const me = await getMe();
+    if (me?.profile) {
+      const { _draft_step, ...profileData } = me.profile as UserInput & { _draft_step?: number };
+      setUserInput(profileData as UserInput);
+      if (me.cached_timeline) setTimelineData(me.cached_timeline);
+      if (me.cached_tax_guide) setCachedTaxGuide(me.cached_tax_guide);
+    }
+    setDraftStep(undefined);
+    setUser(authUser);
   }
 
   return <AuthScreen onAuth={handleAuth} onDemo={handleDemo} />;
