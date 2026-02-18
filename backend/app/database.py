@@ -111,6 +111,16 @@ CREATE TABLE IF NOT EXISTS saved_timelines (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    has_sources INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 """
 
 _PG_SCHEMA_USERS = """
@@ -137,6 +147,17 @@ CREATE TABLE IF NOT EXISTS saved_timelines (
 );
 """
 
+_PG_SCHEMA_CHAT_MESSAGES = """
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    has_sources INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+"""
+
 
 # ---------------------------------------------------------------------------
 # init_db
@@ -149,6 +170,7 @@ def init_db():
             cur = _cursor(conn)
             cur.execute(_PG_SCHEMA_USERS)
             cur.execute(_PG_SCHEMA_TIMELINES)
+            cur.execute(_PG_SCHEMA_CHAT_MESSAGES)
             conn.commit()
 
             # Migration: add profile column if missing
@@ -812,5 +834,86 @@ def update_user_email(user_id: int, email: str) -> bool:
             )
             conn.commit()
             return cursor.rowcount > 0
+    finally:
+        _return_conn(conn)
+
+
+# ---------------------------------------------------------------------------
+# Chat message CRUD
+# ---------------------------------------------------------------------------
+def save_chat_message(user_id: int, role: str, content: str, has_sources: bool = False) -> None:
+    """Insert a chat message row."""
+    conn = get_db()
+    try:
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(
+                f"INSERT INTO chat_messages (user_id, role, content, has_sources) "
+                f"VALUES ({PH}, {PH}, {PH}, {PH})",
+                (user_id, role, content, 1 if has_sources else 0),
+            )
+            conn.commit()
+            cur.close()
+        else:
+            conn.execute(
+                f"INSERT INTO chat_messages (user_id, role, content, has_sources) "
+                f"VALUES ({PH}, {PH}, {PH}, {PH})",
+                (user_id, role, content, 1 if has_sources else 0),
+            )
+            conn.commit()
+    finally:
+        _return_conn(conn)
+
+
+def get_chat_history(user_id: int, limit: int = 50) -> list[dict]:
+    """Return chat messages for a user, ordered by created_at ASC."""
+    conn = get_db()
+    try:
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(
+                f"SELECT id, role, content, has_sources, created_at FROM chat_messages "
+                f"WHERE user_id = {PH} ORDER BY created_at ASC LIMIT {PH}",
+                (user_id, limit),
+            )
+            rows = cur.fetchall()
+            cur.close()
+        else:
+            rows = conn.execute(
+                f"SELECT id, role, content, has_sources, created_at FROM chat_messages "
+                f"WHERE user_id = {PH} ORDER BY created_at ASC LIMIT {PH}",
+                (user_id, limit),
+            ).fetchall()
+
+        results = []
+        for row in rows:
+            d = dict(row)
+            d["has_sources"] = bool(d["has_sources"])
+            if hasattr(d.get("created_at"), "isoformat"):
+                d["created_at"] = d["created_at"].isoformat()
+            results.append(d)
+        return results
+    finally:
+        _return_conn(conn)
+
+
+def clear_chat_history(user_id: int) -> None:
+    """Delete all chat messages for a user."""
+    conn = get_db()
+    try:
+        if USE_PG:
+            cur = _cursor(conn)
+            cur.execute(
+                f"DELETE FROM chat_messages WHERE user_id = {PH}",
+                (user_id,),
+            )
+            conn.commit()
+            cur.close()
+        else:
+            conn.execute(
+                f"DELETE FROM chat_messages WHERE user_id = {PH}",
+                (user_id,),
+            )
+            conn.commit()
     finally:
         _return_conn(conn)

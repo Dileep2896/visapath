@@ -1,4 +1,4 @@
-import type { UserInput, TimelineResponse, ChatResponse, AuthUser, SavedTimeline } from '../types';
+import type { UserInput, TimelineResponse, ChatMessage, ChatResponse, AuthUser, SavedTimeline } from '../types';
 
 const API_BASE = '/api';
 const DEFAULT_TIMEOUT = 60_000; // 60s for most requests
@@ -217,6 +217,17 @@ export async function sendChatMessage(
     throw new Error(data?.detail || 'Failed to send message');
   }
   return res.json();
+}
+
+export async function getChatHistory(): Promise<ChatMessage[]> {
+  const res = await authFetch(`${API_BASE}/chat/history`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.messages;
+}
+
+export async function clearChatHistory(): Promise<void> {
+  await authFetch(`${API_BASE}/chat/history`, { method: 'DELETE' });
 }
 
 export async function getTaxGuide(userContext: UserInput) {

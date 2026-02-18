@@ -41,8 +41,9 @@ async def chat_with_context(
     message: str,
     user_context: dict | None = None,
     rag_context: str | None = None,
+    history: list[dict] | None = None,
 ) -> str:
-    """Send a message to Gemini with user context and RAG context."""
+    """Send a message to Gemini with user context, RAG context, and conversation history."""
     prompt_parts = []
 
     if user_context:
@@ -53,6 +54,13 @@ async def chat_with_context(
             f"from {user_context.get('country', 'Unknown')}."
         )
         prompt_parts.append(f"[User Context]\n{context_str}")
+
+    if history:
+        history_lines = []
+        for msg in history:
+            role_label = "User" if msg["role"] == "user" else "Assistant"
+            history_lines.append(f"{role_label}: {msg['content']}")
+        prompt_parts.append(f"[Conversation History]\n" + "\n".join(history_lines))
 
     if rag_context:
         prompt_parts.append(f"[Reference Documents]\n{rag_context}")
