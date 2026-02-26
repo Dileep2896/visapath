@@ -10,7 +10,7 @@ I've lived this stress firsthand. I built VisaPath because no student should hav
 
 VisaPath is a personalized AI immigration timeline planner. You answer a few questions about your visa, program, and career goals, and it builds your complete immigration roadmap from today through green card eligibility.
 
-**Try it now: [visapath-app.azurewebsites.net](https://visapath-app.azurewebsites.net)** (use the demo login button to skip registration)
+**Try it now: [visapath-app.azurewebsites.net](https://visapath-app.azurewebsites.net)** (use the demo login button to skip registration — first load may take up to 5 minutes since we're on Azure's free student tier and the server cold-starts after inactivity)
 
 ![VisaPath System Overview](https://d112y698adiu2z.cloudfront.net/photos/production/software_photos/004/370/362/datas/original.png)
 

@@ -391,4 +391,4 @@ All immigration guidance in the app includes disclaimers that it's general infor
 
 ## License
 
-Built for DevDash 2026. All rights reserved.
+MIT License. See [LICENSE](LICENSE) for details.
