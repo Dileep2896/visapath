@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VisaPath — System Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #060918;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #e2e8f0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  .diagram {
+    width: 1200px;
+    position: relative;
+  }
+
+  .title {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  .title h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #00D4AA;
+    letter-spacing: -0.5px;
+  }
+
+  .title p {
+    font-size: 14px;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  /* Row layouts */
+  .row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    justify-content: center;
+  }
+
+  /* Boxes */
+  .box {
+    border-radius: 12px;
+    padding: 20px 24px;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .box-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .box-label .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .box h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #f1f5f9;
+  }
+
+  .box .detail {
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+
+  .box .tech-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 2px 2px;
+  }
+
+  /* Color themes */
+  .theme-teal {
+    background: linear-gradient(135deg, rgba(0,212,170,0.08), rgba(0,212,170,0.03));
+    border-color: rgba(0,212,170,0.2);
+  }
+  .theme-teal .box-label { color: #00D4AA; }
+  .theme-teal .dot { background: #00D4AA; }
+  .theme-teal .tech-tag { background: rgba(0,212,170,0.15); color: #00D4AA; }
+
+  .theme-blue {
+    background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(59,130,246,0.03));
+    border-color: rgba(59,130,246,0.2);
+  }
+  .theme-blue .box-label { color: #60a5fa; }
+  .theme-blue .dot { background: #60a5fa; }
+  .theme-blue .tech-tag { background: rgba(59,130,246,0.15); color: #60a5fa; }
+
+  .theme-purple {
+    background: linear-gradient(135deg, rgba(168,85,247,0.08), rgba(168,85,247,0.03));
+    border-color: rgba(168,85,247,0.2);
+  }
+  .theme-purple .box-label { color: #c084fc; }
+  .theme-purple .dot { background: #c084fc; }
+  .theme-purple .tech-tag { background: rgba(168,85,247,0.15); color: #c084fc; }
+
+  .theme-amber {
+    background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.03));
+    border-color: rgba(245,158,11,0.2);
+  }
+  .theme-amber .box-label { color: #fbbf24; }
+  .theme-amber .dot { background: #fbbf24; }
+  .theme-amber .tech-tag { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+  .theme-red {
+    background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.03));
+    border-color: rgba(239,68,68,0.2);
+  }
+  .theme-red .box-label { color: #f87171; }
+  .theme-red .dot { background: #f87171; }
+  .theme-red .tech-tag { background: rgba(239,68,68,0.15); color: #f87171; }
+
+  .theme-slate {
+    background: linear-gradient(135deg, rgba(100,116,139,0.1), rgba(100,116,139,0.04));
+    border-color: rgba(100,116,139,0.2);
+  }
+  .theme-slate .box-label { color: #94a3b8; }
+  .theme-slate .dot { background: #94a3b8; }
+  .theme-slate .tech-tag { background: rgba(100,116,139,0.15); color: #94a3b8; }
+
+  .theme-green {
+    background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.03));
+    border-color: rgba(34,197,94,0.2);
+  }
+  .theme-green .box-label { color: #4ade80; }
+  .theme-green .dot { background: #4ade80; }
+  .theme-green .tech-tag { background: rgba(34,197,94,0.15); color: #4ade80; }
+
+  /* Arrows */
+  .arrow-row {
+    display: flex;
+    justify-content: center;
+    margin: 8px 0;
+    gap: 0;
+  }
+
+  .arrow-down {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #334155;
+    font-size: 12px;
+    gap: 0;
+  }
+
+  .arrow-down .line {
+    width: 2px;
+    height: 20px;
+    background: linear-gradient(to bottom, #1e293b, #334155);
+  }
+
+  .arrow-down .head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #334155;
+  }
+
+  .arrow-down .label {
+    font-size: 10px;
+    color: #475569;
+    margin-top: 2px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  /* Connectors between boxes */
+  .connector-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 6px 0;
+    position: relative;
+  }
+
+  .connector-row .arrow-group {
+    display: flex;
+    align-items: center;
+    gap: 80px;
+  }
+
+  .wide-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .wide-arrow .line {
+    width: 2px;
+    height: 16px;
+    background: #1e293b;
+  }
+
+  .wide-arrow .head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #334155;
+  }
+
+  .wide-arrow .label-tag {
+    font-size: 9px;
+    color: #475569;
+    background: rgba(30,41,59,0.8);
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-bottom: 2px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* Sizing helpers */
+  .flex-1 { flex: 1; }
+  .flex-2 { flex: 2; }
+  .w-full { width: 100%; }
+
+  /* Section dividers */
+  .section-label {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #334155;
+    margin: 20px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .section-label .line-seg {
+    height: 1px;
+    width: 60px;
+    background: linear-gradient(to right, transparent, #1e293b, transparent);
+  }
+
+  /* Feature pills inside boxes */
+  .features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .pill {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.04);
+    color: #cbd5e1;
+    border: 1px solid rgba(255,255,255,0.06);
+    white-space: nowrap;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin: 24px 0 8px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat .num {
+    font-size: 24px;
+    font-weight: 700;
+    color: #00D4AA;
+  }
+
+  .stat .label {
+    font-size: 10px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .horizontal-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .h-arrow {
+    color: #334155;
+    font-size: 18px;
+  }
+
+  .mini-box {
+    border-radius: 8px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+    text-align: center;
+  }
+
+  .mini-box h4 {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+
+  .mini-box .detail {
+    font-size: 10px;
+    color: #64748b;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+<div class="diagram">
+
+  <!-- Title -->
+  <div class="title">
+    <h1>VisaPath System Architecture</h1>
+    <p>AI-Powered Immigration Timeline Planner for International Students</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat"><div class="num">56</div><div class="label">USCIS Rules</div></div>
+    <div class="stat"><div class="num">8</div><div class="label">RAG Documents</div></div>
+    <div class="stat"><div class="num">37</div><div class="label">Vector Chunks</div></div>
+    <div class="stat"><div class="num">6</div><div class="label">Core Features</div></div>
+    <div class="stat"><div class="num">3</div><div class="label">Auth Layers</div></div>
+    <div class="stat"><div class="num">2</div><div class="label">AI Models</div></div>
+  </div>
+
+  <!-- USER / CLIENT LAYER -->
+  <div class="section-label">
+    <span class="line-seg"></span> Client Layer <span class="line-seg"></span>
+  </div>
+
+  <div class="row">
+    <div class="box theme-teal flex-1">
+      <div class="box-label"><span class="dot"></span> Frontend</div>
+      <h3>React 19 SPA</h3>
+      <div class="detail">TypeScript + Vite 7 + Tailwind CSS v4</div>
+      <div class="detail" style="margin-top: 6px;">Custom dark theme (navy/teal) with staggered fade-in animations, pulsing glow markers, and expandable timeline cards</div>
+      <div class="features">
+        <span class="pill">Timeline Dashboard</span>
+        <span class="pill">AI Chat</span>
+        <span class="pill">Risk Alerts</span>
+        <span class="pill">What-If Simulator</span>
+        <span class="pill">Tax Guide</span>
+        <span class="pill">Document Tracker</span>
+        <span class="pill">Action Items</span>
+        <span class="pill">Admin Dashboard</span>
+      </div>
+    </div>
+
+    <div class="box theme-slate" style="width: 240px;">
+      <div class="box-label"><span class="dot"></span> Route Guards</div>
+      <h3>3-Layer Auth</h3>
+      <div class="detail" style="line-height: 2;">
+        <span class="tech-tag">RequireAuth</span><br>
+        <span style="color:#475569;">&#8627;</span> <span class="tech-tag">RequireOnboarded</span><br>
+        <span style="color:#475569;">&#8627;</span> <span class="tech-tag">RequireAdmin</span>
+      </div>
+      <div class="detail" style="margin-top: 8px; font-size: 11px;">
+        Client-side urgency<br>recalculation via useMemo<br>(stale-proof dates)
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow down -->
+  <div class="connector-row">
+    <div class="arrow-group">
+      <div class="wide-arrow">
+        <div class="label-tag">REST API (JSON)</div>
+        <div class="line"></div>
+        <div class="head"></div>
+      </div>
+      <div class="wide-arrow">
+        <div class="label-tag">JWT Token</div>
+        <div class="line"></div>
+        <div class="head"></div>
+      </div>
+      <div class="wide-arrow">
+        <div class="label-tag">user_today</div>
+        <div class="line"></div>
+        <div class="head"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BACKEND LAYER -->
+  <div class="section-label">
+    <span class="line-seg"></span> Backend Layer <span class="line-seg"></span>
+  </div>
+
+  <div class="row">
+    <div class="box theme-blue flex-2">
+      <div class="box-label"><span class="dot"></span> API Server</div>
+      <h3>Python 3.13 + FastAPI</h3>
+      <div class="detail">JWT auth (bcrypt) &bull; Per-IP rate limiting &bull; Per-user credit system (atomic SQL locking)</div>
+      <div class="features" style="margin-top: 10px;">
+        <span class="tech-tag">POST /generate-timeline</span>
+        <span class="tech-tag">POST /chat</span>
+        <span class="tech-tag">POST /tax-guide</span>
+        <span class="tech-tag">GET /required-documents</span>
+        <span class="tech-tag">GET /credits</span>
+        <span class="tech-tag">Auth endpoints</span>
+        <span class="tech-tag">Admin endpoints</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow down to AI + Data -->
+  <div class="connector-row">
+    <div class="arrow-group">
+      <div class="wide-arrow">
+        <div class="line" style="height: 12px;"></div>
+        <div class="head"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI + DATA LAYER -->
+  <div class="section-label">
+    <span class="line-seg"></span> AI &amp; Data Layer <span class="line-seg"></span>
+  </div>
+
+  <div class="row">
+    <!-- AI Timeline Generation -->
+    <div class="box theme-purple flex-1">
+      <div class="box-label"><span class="dot"></span> AI Timeline Engine</div>
+      <h3>Gemini 2.5 Flash</h3>
+      <div class="detail">Auto-fallback to Gemini 2.0 Flash on rate limit</div>
+      <div style="margin-top: 10px;">
+        <div class="horizontal-flow">
+          <div class="mini-box theme-amber" style="flex:1;">
+            <h4>56 USCIS Rules</h4>
+            <div class="detail">OPT, STEM OPT, H-1B,<br>cap-gap, unemployment<br>limits, filing fees,<br>lottery stats FY24-27</div>
+          </div>
+          <span class="h-arrow">+</span>
+          <div class="mini-box theme-slate" style="flex:1;">
+            <h4>User Profile</h4>
+            <div class="detail">Visa type, STEM status,<br>graduation date, country,<br>career goals, CPT usage</div>
+          </div>
+          <span class="h-arrow">&rarr;</span>
+          <div class="mini-box theme-purple" style="flex:1;">
+            <h4>Structured JSON</h4>
+            <div class="detail">Timeline events +<br>risk alerts +<br>current status</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(168,85,247,0.15);">
+        <div class="detail"><strong style="color:#c084fc;">Output Validation:</strong> Schema check &rarr; field rejection &rarr; enum coercion &rarr; min 3 events &rarr; retry up to 2x</div>
+      </div>
+    </div>
+
+    <!-- RAG Pipeline -->
+    <div class="box theme-green" style="width: 320px;">
+      <div class="box-label"><span class="dot"></span> RAG Pipeline</div>
+      <h3>Grounded AI Chat</h3>
+      <div style="margin-top: 8px;">
+        <div class="detail" style="margin-bottom: 6px;">
+          <strong style="color:#4ade80;">8 Documents</strong><br>
+          OPT &bull; STEM OPT &bull; CPT &bull; H-1B<br>
+          Green Card &bull; F-1 Rules<br>
+          Wage-Level Selection &bull; Tax Filing
+        </div>
+        <div style="text-align:center; color:#334155; margin: 4px 0;">&darr;</div>
+        <div class="detail" style="margin-bottom: 6px;">
+          <strong style="color:#4ade80;">37 Chunks</strong> via RecursiveCharacterTextSplitter<br>
+          Embedded with gemini-embedding-001
+        </div>
+        <div style="text-align:center; color:#334155; margin: 4px 0;">&darr;</div>
+        <div class="detail">
+          <strong style="color:#4ade80;">ChromaDB</strong> (embedded, in-process)<br>
+          Top 4 chunks by cosine similarity
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top: 0;">
+    <!-- Risk Engine -->
+    <div class="box theme-red flex-1">
+      <div class="box-label"><span class="dot"></span> Deterministic Risk Engine</div>
+      <h3>Independent from AI</h3>
+      <div class="detail">Rule-based analysis — no Gemini dependency, instant and consistent</div>
+      <div class="features" style="margin-top: 8px;">
+        <span class="pill">CPT overuse detection</span>
+        <span class="pill">Country backlog warnings</span>
+        <span class="pill">Unemployment day tracking</span>
+        <span class="pill">OPT deadline proximity</span>
+        <span class="pill">H-1B wage-level odds</span>
+        <span class="pill">Cap-exempt path detection</span>
+        <span class="pill">Multiple lottery failure alerts</span>
+      </div>
+    </div>
+
+    <!-- Database -->
+    <div class="box theme-slate" style="width: 320px;">
+      <div class="box-label"><span class="dot"></span> Database</div>
+      <h3>Auto-Switching Storage</h3>
+      <div class="detail">Single codebase, zero config changes</div>
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <div class="mini-box theme-slate" style="flex:1;">
+          <h4>SQLite</h4>
+          <div class="detail">Local dev</div>
+        </div>
+        <div class="mini-box theme-blue" style="flex:1;">
+          <h4>PostgreSQL</h4>
+          <div class="detail">Azure prod<br>(connection pool)</div>
+        </div>
+      </div>
+      <div class="detail" style="margin-top: 8px;">Users &bull; Credentials &bull; Cached timelines &bull; Chat history &bull; Tax guides &bull; Credit tracking</div>
+    </div>
+  </div>
+
+  <!-- DEPLOYMENT LAYER -->
+  <div class="section-label">
+    <span class="line-seg"></span> Deployment <span class="line-seg"></span>
+  </div>
+
+  <div class="row">
+    <div class="box theme-blue" style="flex:1;">
+      <div class="box-label"><span class="dot"></span> Hosting</div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div>
+          <h3>Azure App Service</h3>
+          <div class="detail">Python 3.11 &bull; Gunicorn + Uvicorn (2 workers) &bull; Frontend served as static files from backend</div>
+        </div>
+      </div>
+    </div>
+    <div class="box theme-slate" style="width: 280px;">
+      <div class="box-label"><span class="dot"></span> CI/CD</div>
+      <h3>GitHub Actions</h3>
+      <div class="detail">Push to main &rarr; build frontend &rarr; copy dist to backend/static/ &rarr; deploy</div>
+    </div>
+    <div class="box theme-teal" style="width: 200px;">
+      <div class="box-label"><span class="dot"></span> Judge Access</div>
+      <h3>Demo Login</h3>
+      <div class="detail">No-password endpoint<br>Pre-configured profile<br>Skip registration</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

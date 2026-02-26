@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VisaPath — Project Documentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+  @page { size: A4; margin: 36px 44px 40px 44px; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 10pt;
+    line-height: 1.6;
+    color: #1e293b;
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ========== COVER ========== */
+  .cover {
+    text-align: center;
+    padding: 60px 40px 40px;
+    background: linear-gradient(180deg, #0a0f1e 0%, #0f172a 100%);
+    border-radius: 16px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .cover > * { position: relative; z-index: 2; }
+
+  .cover-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .cover-logo-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(0,212,170,0.2), rgba(0,212,170,0.05));
+    border: 1px solid rgba(0,212,170,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cover-logo-text {
+    font-size: 30px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+
+  .cover-logo-text span { color: #00d4aa; }
+
+  .cover h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+  }
+
+  .cover-sub {
+    font-size: 11px;
+    color: #94a3b8;
+    max-width: 440px;
+    margin: 0 auto 24px;
+    line-height: 1.65;
+  }
+
+  .cover-stats {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .cover-stat-num { font-size: 22px; font-weight: 900; color: #00d4aa; }
+  .cover-stat-label { font-size: 8px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+
+  .cover-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    color: #00d4aa;
+    background: rgba(0,212,170,0.08);
+    border: 1px solid rgba(0,212,170,0.2);
+    padding: 4px 14px;
+    border-radius: 20px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .cover-author { font-size: 11px; color: #64748b; margin-top: 4px; }
+  .cover-links { font-size: 10px; color: #475569; margin-top: 2px; }
+  .cover-links a { color: #00d4aa; text-decoration: none; }
+
+  /* ========== SECTIONS ========== */
+  .section { margin-bottom: 22px; }
+
+  .section-tag {
+    display: inline-block;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 5px;
+    margin-bottom: 6px;
+  }
+
+  .tag-teal { background: #ecfdf5; color: #0d9488; }
+  .tag-amber { background: #fffbeb; color: #b45309; }
+  .tag-red { background: #fef2f2; color: #dc2626; }
+  .tag-blue { background: #eff6ff; color: #2563eb; }
+  .tag-purple { background: #faf5ff; color: #7c3aed; }
+
+  h2 {
+    font-size: 17px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+  }
+
+  h3 {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 12px 0 6px 0;
+  }
+
+  p { margin: 5px 0; color: #334155; }
+  a { color: #0d9488; text-decoration: none; }
+  strong { color: #0f172a; }
+
+  /* ========== CARDS ========== */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
+
+  .card {
+    padding: 10px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    border-left: 3px solid #00d4aa;
+  }
+
+  .card-title { font-size: 10px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
+  .card-desc { font-size: 8.5px; color: #475569; line-height: 1.55; }
+
+  /* ========== TABLE ========== */
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9pt; }
+
+  th {
+    background: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+    text-align: left;
+    padding: 6px 10px;
+    border: 1px solid #e2e8f0;
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  td { padding: 5px 10px; border: 1px solid #e2e8f0; color: #334155; }
+  tr:nth-child(even) td { background: #f8fafc; }
+
+  /* ========== TWO COL ========== */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  /* ========== FLOW STEPS ========== */
+  .flow-step { display: flex; gap: 10px; margin-bottom: 7px; align-items: flex-start; }
+
+  .flow-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #ecfdf5;
+    border: 1.5px solid #00d4aa;
+    color: #0d9488;
+    font-weight: 800;
+    font-size: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .flow-text { font-size: 9.5pt; color: #334155; line-height: 1.5; }
+
+  /* ========== CODE ========== */
+  .code-block {
+    background: #0f172a;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin: 8px 0;
+    font-family: 'SF Mono', monospace;
+    font-size: 7.5pt;
+    color: #e2e8f0;
+    line-height: 1.55;
+    white-space: pre;
+  }
+
+  .code-block .kw { color: #00d4aa; }
+  .code-block .str { color: #f59e0b; }
+
+  /* ========== CALLOUT ========== */
+  .callout {
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin: 8px 0;
+    font-size: 9pt;
+  }
+
+  .callout-amber { background: #fffbeb; border: 1px solid #fde68a; color: #78350f; }
+  .callout-teal { background: #ecfdf5; border: 1px solid #99f6e4; color: #134e4a; }
+  .callout-title { font-weight: 700; margin-bottom: 2px; font-size: 9px; }
+
+  /* ========== SCREENSHOTS ========== */
+  .screenshots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
+
+  .ss-item { border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; }
+  .ss-item img { width: 100%; display: block; }
+
+  .ss-label {
+    padding: 4px 8px;
+    font-size: 7.5px;
+    font-weight: 700;
+    color: #64748b;
+    background: #f8fafc;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+
+  /* ========== TESTIMONIAL ========== */
+  .testimonial {
+    padding: 10px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 3px solid #00d4aa;
+    border-radius: 0 6px 6px 0;
+    margin: 6px 0;
+  }
+
+  .testimonial-text { font-size: 9pt; color: #334155; font-style: italic; line-height: 1.5; margin-bottom: 4px; }
+  .testimonial-author { font-size: 8.5pt; font-weight: 600; color: #0f172a; }
+  .testimonial-role { color: #64748b; font-weight: 400; }
+
+  /* ========== LIST ========== */
+  ul { margin: 4px 0; padding-left: 16px; }
+  li { margin: 2px 0; color: #334155; font-size: 9.5pt; }
+  li::marker { color: #00d4aa; }
+
+  /* ========== RISK COLORS ========== */
+  .risk-critical td:first-child { color: #dc2626; font-weight: 600; }
+  .risk-warning td:first-child { color: #b45309; font-weight: 600; }
+  .risk-info td:first-child { color: #0d9488; font-weight: 600; }
+
+  /* ========== DIVIDER ========== */
+  .divider { border: none; border-top: 1px solid #e2e8f0; margin: 18px 0; }
+
+  /* ========== PAGE BREAK HELPERS ========== */
+  .break-before { page-break-before: always; }
+  .no-break { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<!-- ========== COVER ========== -->
+<div class="cover no-break">
+  <div class="cover-logo">
+    <div class="cover-logo-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00d4aa" stroke-width="2" stroke-linecap="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div class="cover-logo-text">Visa<span>Path</span></div>
+  </div>
+  <h1>AI Immigration Timeline Planner for International Students</h1>
+  <p class="cover-sub">Never miss a visa deadline again. VisaPath takes your specific situation and builds a personalized roadmap from OPT all the way to green card — powered by AI, grounded in real USCIS rules.</p>
+  <div class="cover-stats">
+    <div><div class="cover-stat-num">1M+</div><div class="cover-stat-label">Students in the US</div></div>
+    <div><div class="cover-stat-num">$300/hr</div><div class="cover-stat-label">Lawyer cost</div></div>
+    <div><div class="cover-stat-num">56</div><div class="cover-stat-label">USCIS rules encoded</div></div>
+    <div><div class="cover-stat-num">15+</div><div class="cover-stat-label">Active users at RIT</div></div>
+  </div>
+  <div class="cover-badge">DevDash 2026</div>
+  <div class="cover-author">Built by Dileep Kumar Sharma &nbsp;|&nbsp; Rochester Institute of Technology</div>
+  <div class="cover-links"><a href="https://visapath-app.azurewebsites.net">visapath-app.azurewebsites.net</a> &bull; <a href="https://github.com/Dileep2896/visapath">github.com/Dileep2896/visapath</a></div>
+</div>
+
+<!-- ========== PROBLEM ========== -->
+<div class="section no-break">
+  <div class="section-tag tag-red">The Problem</div>
+  <h2>Immigration info is scattered, confusing, and high stakes</h2>
+  <p>There are over <strong>1 million international students</strong> in the US, and every one of them navigates a maze of visa deadlines, work authorization rules, and immigration paperwork. Miss one deadline and you could lose your legal status.</p>
+  <div class="cards">
+    <div class="card" style="border-left-color:#ef4444"><div class="card-title">OPT Filing Window</div><div class="card-desc">90 days before graduation to 60 days after. Miss it by a single day and you lose work authorization. No second chance.</div></div>
+    <div class="card" style="border-left-color:#f59e0b"><div class="card-title">CPT Overuse Trap</div><div class="card-desc">Using 12+ months of full-time CPT permanently kills your OPT eligibility. Most students don't learn this until it's too late.</div></div>
+    <div class="card" style="border-left-color:#6366f1"><div class="card-title">Country Backlogs</div><div class="card-desc">India and China nationals face 10–30+ year green card waits in EB-2/EB-3. This dramatically affects long-term planning.</div></div>
+    <div class="card" style="border-left-color:#0ea5e9"><div class="card-title">Scattered Information</div><div class="card-desc">Students piece together info from USCIS.gov, Reddit, university DSO offices, and $300+/hr immigration lawyers.</div></div>
+  </div>
+</div>
+
+<!-- ========== SOLUTION ========== -->
+<div class="section no-break">
+  <div class="section-tag tag-teal">The Solution</div>
+  <h2>One personalized timeline for your entire immigration journey</h2>
+  <p>You fill out a short onboarding form — visa type, degree, STEM status, graduation date, country, career goal — and VisaPath generates a complete immigration roadmap tailored to your exact situation.</p>
+  <div class="cards">
+    <div class="card"><div class="card-title">📅 Smart Timeline</div><div class="card-desc">AI generates every deadline and milestone, color coded by urgency, grouped by month, with expandable action items.</div></div>
+    <div class="card"><div class="card-title">⚠️ Risk Alerts</div><div class="card-desc">Flags CPT overuse, country backlogs, H-1B lottery odds, wage-level weighting, and approaching deadlines.</div></div>
+    <div class="card"><div class="card-title">💬 AI Chat (RAG)</div><div class="card-desc">Ask any immigration question. Answers grounded in 8 USCIS knowledge base documents — not hallucinated.</div></div>
+    <div class="card"><div class="card-title">📋 Document Tracker</div><div class="card-desc">Step-by-step checklists for OPT, STEM OPT, H-1B, and Green Card filings with document tracking.</div></div>
+    <div class="card"><div class="card-title">💰 Tax Guide</div><div class="card-desc">Personalized tax filing guidance based on visa type, country, treaty benefits, and residency status.</div></div>
+    <div class="card"><div class="card-title">🔬 What-If Simulator</div><div class="card-desc">Change graduation date, STEM status, or country and instantly see how your entire timeline shifts.</div></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ========== HOW IT WORKS ========== -->
+<div class="section">
+  <div class="section-tag tag-teal">How It Works</div>
+  <h2>Architecture &amp; Timeline Generation</h2>
+  <div class="two-col">
+    <div>
+      <h3>Timeline Generation Pipeline</h3>
+      <div class="flow-step"><div class="flow-num">1</div><div class="flow-text"><strong>Student fills onboarding form</strong> — visa type, degree, STEM status, graduation date, country, career goal</div></div>
+      <div class="flow-step"><div class="flow-num">2</div><div class="flow-text">Backend assembles prompt with <strong>56 hardcoded USCIS rules</strong>, filing fees, H-1B lottery stats, country backlogs</div></div>
+      <div class="flow-step"><div class="flow-num">3</div><div class="flow-text"><strong>Gemini 2.5 Flash</strong> generates structured JSON timeline grounded in real rules, not training data</div></div>
+      <div class="flow-step"><div class="flow-num">4</div><div class="flow-text"><strong>Risk engine</strong> analyzes for CPT overuse, country backlogs, wage-level lottery odds</div></div>
+      <div class="flow-step"><div class="flow-num">5</div><div class="flow-text">Frontend renders <strong>interactive timeline</strong> with urgency colors, expandable cards, month grouping</div></div>
+    </div>
+    <div>
+      <h3>RAG Chat Pipeline</h3>
+      <div class="flow-step"><div class="flow-num">1</div><div class="flow-text"><strong>8 immigration docs</strong> split into 21 chunks, embedded with gemini-embedding-001 (768 dim)</div></div>
+      <div class="flow-step"><div class="flow-num">2</div><div class="flow-text">Query embedded and matched via <strong>cosine similarity</strong> in ChromaDB (top k=4)</div></div>
+      <div class="flow-step"><div class="flow-num">3</div><div class="flow-text">Retrieved chunks + user visa context sent to <strong>Gemini for a grounded answer</strong></div></div>
+      <div class="callout callout-amber" style="margin-top:10px">
+        <div class="callout-title">Key Design Decision</div>
+        We don't rely on AI training data for immigration rules. 56 hardcoded USCIS rules are injected into every prompt as ground truth.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section no-break">
+  <h3>System Architecture</h3>
+  <div class="code-block"><span class="kw">React 19</span> + TypeScript + Tailwind CSS v4  (Frontend SPA)
+    |  REST API (JSON over HTTPS)
+    v
+<span class="kw">Python 3.13</span> + FastAPI  (Backend)
+    |── Timeline Generator ──> 56 USCIS Rules + Fees + Backlogs ──> <span class="str">Gemini 2.5 Flash</span>
+    |── Chat Service ────────> ChromaDB RAG (21 chunks) ─────────> <span class="str">Gemini 2.5 Flash</span>
+    |── Tax Guide Service ───> RAG Context ──────────────────────> <span class="str">Gemini 2.5 Flash</span>
+    |── Auth Service ────────> JWT + bcrypt ──> PostgreSQL
+    |── Risk Analyzer ───────> Immigration Rules + Country Data</div>
+</div>
+
+<div class="section no-break">
+  <h3>Risk Analysis Engine</h3>
+  <table>
+    <tr><th>Risk</th><th>Severity</th><th>Trigger</th></tr>
+    <tr class="risk-critical"><td>CPT overuse (12+ months)</td><td>Critical</td><td>Permanently kills OPT eligibility</td></tr>
+    <tr class="risk-critical"><td>OPT deadline approaching</td><td>Critical</td><td>&lt;30 days to filing window close</td></tr>
+    <tr class="risk-warning"><td>Country backlog (India/China)</td><td>Warning</td><td>10–30+ year green card waits</td></tr>
+    <tr class="risk-warning"><td>H-1B wage-level weighting</td><td>Warning</td><td>Lower odds for entry-level under FY2027+ rules</td></tr>
+    <tr class="risk-info"><td>Non-STEM limited OPT</td><td>Info</td><td>Only 12 months, no STEM extension</td></tr>
+    <tr class="risk-info"><td>H-1B lottery uncertainty</td><td>Info</td><td>~25–30% selection rate</td></tr>
+  </table>
+</div>
+
+<hr class="divider">
+
+<!-- ========== TECH STACK ========== -->
+<div class="section">
+  <div class="section-tag tag-blue">Tech Stack</div>
+  <h2>Built With</h2>
+  <div class="two-col">
+    <table>
+      <tr><th>Layer</th><th>Technology</th></tr>
+      <tr><td>Frontend</td><td>React 19, TypeScript, Vite 7</td></tr>
+      <tr><td>Styling</td><td>Tailwind CSS v4 (custom dark theme)</td></tr>
+      <tr><td>Routing</td><td>React Router v7</td></tr>
+      <tr><td>Backend</td><td>Python 3.13, FastAPI</td></tr>
+      <tr><td>AI Model</td><td>Google Gemini 2.5 Flash</td></tr>
+      <tr><td>Embeddings</td><td>gemini-embedding-001 (768 dim)</td></tr>
+      <tr><td>Vector DB</td><td>ChromaDB + LangChain</td></tr>
+      <tr><td>Auth</td><td>JWT + bcrypt</td></tr>
+      <tr><td>Database</td><td>SQLite (dev) / PostgreSQL (prod)</td></tr>
+      <tr><td>Hosting</td><td>Azure App Service (Student tier)</td></tr>
+      <tr><td>CI/CD</td><td>GitHub Actions</td></tr>
+    </table>
+    <div>
+      <h3>Key Technical Decisions</h3>
+      <ul>
+        <li><strong>56 hardcoded USCIS rules</strong> injected into every AI prompt — we don't rely on model training data</li>
+        <li><strong>RAG pipeline</strong> with 8 docs, 21 chunks, cosine similarity — answers cite real USCIS sources</li>
+        <li><strong>Client-side date recalculation</strong> — cached timelines recalculate urgency on every render</li>
+        <li><strong>Fire-and-forget navigation</strong> — animated loading turns 15s AI wait into engaging experience</li>
+        <li><strong>Lazy-loaded routes</strong> — main bundle reduced from 483KB to 270KB</li>
+        <li><strong>4-layer rate limiting</strong> — per-IP, daily AI tracker, frontend pre-check, Gemini 429 cooldown</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ========== SCREENSHOTS ========== -->
+<div class="section">
+  <div class="section-tag tag-purple">Screenshots</div>
+  <h2>App Interface</h2>
+  <div class="screenshots">
+    <div class="ss-item"><img src="../screenshots/timeline.png" alt="Timeline"><div class="ss-label">Timeline Dashboard</div></div>
+    <div class="ss-item"><img src="../screenshots/risk-alerts.png" alt="Alerts"><div class="ss-label">Risk Alerts</div></div>
+    <div class="ss-item"><img src="../screenshots/ai-chat.png" alt="Chat"><div class="ss-label">AI Chat (RAG)</div></div>
+    <div class="ss-item"><img src="../screenshots/documents.png" alt="Docs"><div class="ss-label">Document Tracker</div></div>
+    <div class="ss-item"><img src="../screenshots/tax-guide.png" alt="Tax"><div class="ss-label">Tax Guide</div></div>
+    <div class="ss-item"><img src="../screenshots/action-items.png" alt="Actions"><div class="ss-label">Action Items</div></div>
+    <div class="ss-item"><img src="../screenshots/profile.png" alt="Profile"><div class="ss-label">User Profile</div></div>
+    <div class="ss-item"><img src="../screenshots/login.png" alt="Login"><div class="ss-label">Login Screen</div></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ========== TRACTION ========== -->
+<div class="section">
+  <div class="section-tag tag-teal">Traction</div>
+  <h2>Real Students, Real Impact</h2>
+  <p>We shared VisaPath with <strong>15 classmates at RIT</strong>, all F-1 international students. Their feedback validated that the tool catches things even knowledgeable students miss.</p>
+
+  <div class="testimonial no-break">
+    <div class="testimonial-text">"I knew I had to file OPT before graduation, but VisaPath calculated my exact filing window down to the day and showed me I only had 23 days left. I was planning to file next month — that would have been too late."</div>
+    <div class="testimonial-author">Priya Sharma <span class="testimonial-role">— MS Data Science, F-1</span></div>
+  </div>
+  <div class="testimonial no-break">
+    <div class="testimonial-text">"I used the what-if simulator to compare staying on OPT vs applying for H-1B through a cap-exempt employer. It showed me a path I didn't even know existed — skipping the lottery entirely through a university-affiliated research position."</div>
+    <div class="testimonial-author">Ananya Reddy <span class="testimonial-role">— MS Bioinformatics, F-1</span></div>
+  </div>
+  <div class="testimonial no-break">
+    <div class="testimonial-text">"The tax guide told me India has a US tax treaty for students that most people don't claim. It also showed the exact forms I need as a dual-status filer."</div>
+    <div class="testimonial-author">Siddharth Joshi <span class="testimonial-role">— MS Computer Science, F-1</span></div>
+  </div>
+  <div class="testimonial no-break">
+    <div class="testimonial-text">"The risk engine flagged that the H-1B lottery is switching to wage-level weighting in FY2027. VisaPath laid out alternate paths like the O-1B and EB-2 NIW that I hadn't considered."</div>
+    <div class="testimonial-author">Vikram Singh <span class="testimonial-role">— MBA, F-1</span></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ========== BUSINESS MODEL ========== -->
+<div class="section no-break">
+  <div class="section-tag tag-amber">Business Model</div>
+  <h2>How VisaPath Becomes Sustainable</h2>
+  <table>
+    <tr><th>Tier</th><th>Price</th><th>Includes</th></tr>
+    <tr><td><strong>Free</strong></td><td>$0</td><td>5 timeline generations, basic risk alerts, document checklists</td></tr>
+    <tr><td><strong>Pro</strong></td><td>$9.99/mo</td><td>Unlimited timelines, AI chat, what-if simulator, tax guide, push notifications</td></tr>
+    <tr><td><strong>University</strong></td><td>$499/yr</td><td>DSO advisor dashboard, bulk student management, analytics, priority support</td></tr>
+  </table>
+  <div class="cards">
+    <div class="card" style="border-left-color:#0ea5e9"><div class="card-title">TAM: 1M+ students</div><div class="card-desc">~400K new F-1 students enter the US each year. Average spend on immigration help: $500–2K.</div></div>
+    <div class="card" style="border-left-color:#6366f1"><div class="card-title">0 direct competitors</div><div class="card-desc">No existing tool provides AI-powered personalized immigration timelines for students.</div></div>
+  </div>
+</div>
+
+<!-- ========== PRIZE MONEY ========== -->
+<div class="section no-break">
+  <div class="section-tag tag-amber">If We Win</div>
+  <h2>Prize Money Investment Plan — $5,000</h2>
+  <table>
+    <tr><th>Amount</th><th>Use</th><th>Details</th></tr>
+    <tr><td><strong>$2,000</strong></td><td>User acquisition at 10 universities</td><td>Campus ambassadors, student org partnerships, DSO outreach</td></tr>
+    <tr><td><strong>$1,500</strong></td><td>AWS production infrastructure</td><td>Always-on ECS, RDS PostgreSQL, CloudFront CDN — 12 months</td></tr>
+    <tr><td><strong>$1,000</strong></td><td>AI API costs</td><td>Gemini API for timeline, chat, tax guide at scale for 1,000+ users</td></tr>
+    <tr><td><strong>$500</strong></td><td>Legal review</td><td>Immigration attorney validates our 56 USCIS rules and disclaimers</td></tr>
+  </table>
+  <div class="callout callout-teal" style="text-align:center"><strong>$5/user customer acquisition cost</strong> — 12 months of runway to reach 1,000 active users</div>
+</div>
+
+<hr class="divider">
+
+<!-- ========== ROADMAP ========== -->
+<div class="section no-break">
+  <div class="section-tag tag-blue">What's Next</div>
+  <h2>Future Roadmap</h2>
+  <div class="two-col">
+    <ul>
+      <li>Push notifications for upcoming deadlines (email + browser)</li>
+      <li>Support for J-1, L-1, O-1 visa types</li>
+      <li>Cap-exempt employer lookup database</li>
+      <li>Live USCIS processing time integration</li>
+    </ul>
+    <ul>
+      <li>University DSO advisor dashboard</li>
+      <li>React Native mobile app (iOS + Android)</li>
+      <li>AWS migration for production-grade hosting</li>
+      <li>Partnerships with university international offices</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ========== AI DISCLOSURE ========== -->
+<div class="section no-break">
+  <div class="section-tag tag-purple">AI Disclosure</div>
+  <h3>Runtime AI (in the product)</h3>
+  <p>Google Gemini 2.5 Flash powers timeline generation, AI chat Q&A, and tax guide. Google gemini-embedding-001 creates vector embeddings for the RAG pipeline.</p>
+  <h3>Development AI (building the product)</h3>
+  <p>Claude Code (Anthropic) was used as a coding assistant during the hackathon for code generation, debugging, and iteration.</p>
+  <div class="callout callout-amber" style="margin-top:8px">All immigration guidance in the app includes disclaimers that it's general information, not legal advice. Users are always directed to consult their DSO or an immigration attorney.</div>
+</div>
+
+<div style="text-align:center; margin-top:20px; padding-top:12px; border-top:1px solid #e2e8f0; font-size:8px; color:#94a3b8">
+  VisaPath — AI Immigration Timeline Planner &nbsp;|&nbsp; DevDash 2026 &nbsp;|&nbsp; Dileep Kumar Sharma &nbsp;|&nbsp; Rochester Institute of Technology
+</div>
+
+</body>
+</html>

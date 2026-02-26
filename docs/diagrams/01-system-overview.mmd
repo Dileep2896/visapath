@@ -1,0 +1,65 @@
+graph TB
+    subgraph Frontend["Frontend: React 19 + Vite 7 + Tailwind v4"]
+        AUTH["Auth Screen"]
+        OF["Onboarding Form"]
+        TD["Timeline Dashboard"]
+        WIF["What-If Simulator"]
+        CP["AI Chat Panel"]
+        DT["Document Tracker"]
+        TXG["Tax Guide"]
+        API_CLIENT["API Client"]
+        AUTH & OF & TD & WIF & CP & DT & TXG --> API_CLIENT
+    end
+
+    subgraph Backend["Backend: Python 3.13 + FastAPI"]
+        subgraph Routes["API Routes"]
+            R1["POST /api/generate-timeline"]
+            R2["POST /api/chat"]
+            R3["GET /api/required-documents"]
+            R4["POST /api/tax-guide"]
+            R_AUTH["Auth Routes"]
+        end
+
+        subgraph Middleware["Middleware"]
+            RL["Rate Limiter"]
+            JWT["JWT Auth"]
+        end
+
+        subgraph Services["Services"]
+            TG["AI Timeline Generator"]
+            RA["Risk Analyzer"]
+            CS["Chat Service"]
+            RAG["RAG Service"]
+            GS["Gemini Service"]
+            AS["Auth Service"]
+        end
+
+        subgraph Data["Data Layer"]
+            DB["SQLite / PostgreSQL"]
+            IR["56 USCIS Rules + Fees"]
+            CB["Country Backlogs"]
+        end
+
+        subgraph VectorDB["Vector Store"]
+            CHROMA["ChromaDB - 37 chunks"]
+        end
+
+        R_AUTH --> AS --> DB
+        R1 --> TG & RA
+        R2 --> CS
+        R3 --> Data
+        R4 --> GS
+        TG & RA --> IR & CB
+        TG --> GS
+        CS --> RAG --> CHROMA
+        CS --> GS
+    end
+
+    subgraph External["External APIs"]
+        GEMINI["Google Gemini API"]
+    end
+
+    API_CLIENT -->|"REST API / JSON"| Routes
+    Routes --> Middleware
+    GS --> GEMINI
+    RAG -->|"Embedding requests"| GEMINI

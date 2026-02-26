@@ -1,0 +1,30 @@
+graph LR
+    subgraph Ingestion["1. Ingestion (one time)"]
+        direction TB
+        DOCS["8 immigration docs"]
+        SPLIT["Text Splitter<br/>1000 chars, 200 overlap"]
+        CHUNKS["37 text chunks"]
+        EMBED_I["gemini-embedding-001<br/>768-dim vectors"]
+        STORE["ChromaDB"]
+        DOCS --> SPLIT --> CHUNKS --> EMBED_I --> STORE
+    end
+
+    subgraph Retrieval["2. Retrieval (per query)"]
+        direction TB
+        QUERY["User question"]
+        EMBED_Q["Embed query"]
+        SEARCH["Cosine similarity<br/>top k=4"]
+        RESULTS["4 relevant chunks"]
+        QUERY --> EMBED_Q --> SEARCH --> RESULTS
+    end
+
+    subgraph Generation["3. Generation"]
+        direction TB
+        PROMPT["System prompt +<br/>User context +<br/>RAG chunks +<br/>Question"]
+        LLM["Gemini 2.5 Flash"]
+        RESPONSE["Grounded response<br/>with USCIS citations"]
+        PROMPT --> LLM --> RESPONSE
+    end
+
+    STORE -.->|"Vector store"| SEARCH
+    RESULTS --> PROMPT

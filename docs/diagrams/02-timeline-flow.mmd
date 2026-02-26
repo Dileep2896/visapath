@@ -1,0 +1,24 @@
+sequenceDiagram
+    actor User
+    participant FE as Frontend
+    participant API as FastAPI
+    participant TG as Timeline Generator
+    participant Data as 56 USCIS Rules + Fees
+    participant Gemini as Gemini 2.5 Flash
+    participant RA as Risk Analyzer
+
+    User->>FE: Completes onboarding form
+    FE->>FE: Navigate to /timeline immediately
+    FE->>API: POST /generate-timeline + user_today
+    API->>TG: generate_timeline(input, user_today)
+    TG->>Data: Load rules, fees, backlogs, lottery stats
+    Data-->>TG: 56 rules + country data + H-1B stats
+    TG->>Gemini: Structured prompt with all context
+    Gemini-->>TG: JSON timeline response
+    TG->>TG: Validate schema, coerce urgency, recalc dates
+    TG-->>API: timeline_events[]
+    API->>RA: analyze_risks(profile, events)
+    RA-->>API: risk_alerts[]
+    API-->>FE: {timeline_events, risk_alerts, current_status}
+    FE->>FE: Recalculate urgency from browser date
+    FE-->>User: Interactive timeline rendered

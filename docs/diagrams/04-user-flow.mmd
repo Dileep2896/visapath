@@ -1,0 +1,24 @@
+flowchart TB
+    START(["Student visits VisaPath"])
+    START --> LOGIN["Login / Register"]
+    LOGIN --> DEMO["Demo Login<br/>Pre-configured for judges"]
+    LOGIN --> REG["Email + Password"]
+
+    DEMO --> TIMELINE
+    REG --> ONBOARD
+
+    subgraph ONBOARD["4-Step Onboarding"]
+        direction LR
+        S1["Visa + Degree"] --> S2["STEM + Grad Date"] --> S3["CPT + Country"] --> S4["Career Goal"]
+    end
+
+    ONBOARD -->|"Fire API + navigate"| LOADING["Animated Loading<br/>10-15 seconds"]
+    LOADING --> TIMELINE
+
+    TIMELINE["Timeline Dashboard"] --> RISKS["Risk Alerts"]
+    TIMELINE --> CHAT["AI Chat (RAG)"]
+    TIMELINE --> WHATIF["What-If Simulator"]
+    TIMELINE --> TAX["Tax Guide"]
+    TIMELINE --> DOCS["Document Tracker"]
+
+    WHATIF -->|"Re-generate"| LOADING

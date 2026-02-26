@@ -1,4 +1,4 @@
-# Nexora Hacks 2026: Submission Checklist
+# DevDash 2026: Submission Checklist
 
 Track all submission requirements here before the deadline.
 
@@ -6,7 +6,7 @@ Track all submission requirements here before the deadline.
 
 - [x] Working prototype deployed and accessible
 - [x] Live URL: [visapath-app.azurewebsites.net](https://visapath-app.azurewebsites.net)
-- [x] Built during the Nexora Hacks 2026 hackathon period
+- [x] Built during the DevDash 2026 hackathon period
 - [x] Software only project (web application)
 
 ## Project Description on Devpost

@@ -1,72 +1,91 @@
 ## Inspiration
 
-I'm an international student on an F-1 visa, and I've lived through the stress of tracking OPT deadlines, H-1B lottery registration windows, and cap-gap extensions. Last semester I watched a friend nearly miss their OPT application window because they miscounted the 90-day pre-graduation filing period. That would have ended their work authorization in the US.
+I'm Dileep, an F-1 student at RIT. Last semester, a friend of mine nearly lost their work authorization in the US. They miscounted the 90-day pre-graduation OPT filing window by two weeks. Two weeks. That's all it takes to go from "on track for a career in the US" to "pack your bags."
 
-The information you need is out there, but it's scattered across USCIS.gov, Reddit threads, university DSO offices, and immigration lawyers charging $300+ an hour. I wanted to build something that takes your specific situation and just tells you: here's what you need to do, and here's when you need to do it.
+There are over 1.1 million international students in the US right now, and every single one of us navigates the same broken process. The rules that determine whether you can live and work here are scattered across USCIS.gov, buried in Reddit threads, paywalled behind $300/hour immigration lawyers, and summarized incorrectly on university websites. One missed deadline, one wrong form, one miscounted day and your legal status is gone.
+
+I've lived this stress firsthand. I built VisaPath because no student should have to lose their future over a confusing government website.
 
 ## What it does
 
-VisaPath takes a student's visa type, program details, and career goals, and generates a personalized immigration timeline covering every deadline from OPT application all the way to green card.
+VisaPath is a personalized AI immigration timeline planner. You answer a few questions about your visa, program, and career goals, and it builds your complete immigration roadmap from today through green card eligibility.
 
-The **Timeline Dashboard** is the core feature. It's an interactive, color coded vertical timeline where every event is tagged by urgency (critical in red, high in amber, medium in teal, low in slate). Events are grouped by month, and each card expands to show a detailed description and specific action items. Past events collapse automatically, and there's an "Up Next" badge on whatever deadline is coming soonest.
+**Try it now: [visapath-app.azurewebsites.net](https://visapath-app.azurewebsites.net)** (use the demo login button to skip registration)
 
-The **Risk Engine** runs alongside timeline generation and flags things most students don't think about until it's too late: using 12+ months of CPT kills your OPT eligibility, India and China nationals face 10-30+ year green card backlogs, and the H-1B lottery now uses wage-level weighting starting FY2027 that changes your odds depending on your salary level.
+![VisaPath System Overview](https://d112y698adiu2z.cloudfront.net/photos/production/software_photos/004/370/362/datas/original.png)
 
-The **AI Chat** lets you ask any immigration question and get an answer grounded in actual USCIS documentation. We built a RAG (Retrieval Augmented Generation) pipeline that embeds 8 immigration knowledge base documents into ChromaDB, retrieves the most relevant chunks for each question, and feeds them into the AI alongside your visa context. This means answers cite real rules instead of hallucinating.
+**Timeline Dashboard.** The core feature. A vertical, interactive timeline where every deadline is color-coded by urgency: critical (red), high (amber), medium (teal), low (slate). Cards expand to reveal detailed descriptions and step-by-step action items. Past events dim automatically. An "Up Next" badge highlights your most urgent deadline.
 
-There's also a **Document Tracker** (step-by-step checklists for OPT, STEM OPT, H-1B, and Green Card filings), a **Tax Guide** (personalized to your visa type, country, treaty benefits, and residency status), and a **What-If Simulator** that lets you change one variable and instantly see how your entire timeline shifts.
+**Risk Engine.** A deterministic rule engine that runs independently from the AI. It flags things that blindside students: 12+ months of CPT killing OPT eligibility, India/China green card backlogs exceeding 10-30 years, unemployment day tracking approaching limits, and the new FY2027 wage-level weighted H-1B lottery that changes your odds based on salary level. No AI dependency means risk alerts are instant and always consistent.
+
+**AI Chat.** Ask any immigration question and get an answer grounded in official USCIS documentation through RAG, not hallucinated from training data. Sources are cited with every response.
+
+**What-If Simulator.** Change one variable (graduation date, STEM status, country of origin) and instantly see how your entire timeline shifts. No AI credits consumed.
+
+**Tax Guide.** Personalized to your visa type, country, treaty benefits, and residency status. Most students don't know their country has a US tax treaty they can claim.
+
+**Document Tracker.** Step-by-step checklists for OPT, STEM OPT, H-1B, and Green Card filings so you never scramble for paperwork at the last minute.
+
+![The AI Timeline Generation Engine](https://d112y698adiu2z.cloudfront.net/photos/production/software_photos/004/370/361/datas/original.png)
 
 ## How we built it
 
-**Frontend:** React 19 with TypeScript, Vite 7, and Tailwind CSS v4 with a custom dark theme (navy and teal palette). React Router v7 handles navigation with three layers of route guards: RequireAuth, RequireOnboarded, and RequireAdmin. The timeline has staggered fade-in animations, expandable cards with CSS grid transitions, and a pulsing glow effect on the current event marker.
+I built this solo over the hackathon period. The app has two halves: a FastAPI backend (Python 3.13) that handles AI generation, authentication, and data, and a React 19 frontend (TypeScript, Vite 7, Tailwind v4) that renders the interactive timeline.
 
-**Backend:** Python 3.13 with FastAPI. JWT authentication with bcrypt password hashing. SQLite for local development, PostgreSQL on Azure for production. Per-IP rate limiting on auth endpoints and a daily AI request tracker to manage API costs.
+**The part I'm most proud of technically: the AI doesn't get the last word.** I don't just throw user data at Gemini and hope for the best. The backend injects 56 hardcoded USCIS rules (OPT windows, STEM OPT extensions, cap-gap, unemployment limits), current filing fees, H-1B lottery statistics from FY2024 through FY2027, and country-specific green card backlog data directly into the prompt. The AI generates grounded in these verified rules, not its training data. If Gemini 2.5 Flash hits its rate limit, the system falls back to Gemini 2.0 Flash automatically so the user never sees a failure.
 
-**AI Timeline Generation:** This is where the interesting engineering is. We don't just throw the user's data at an LLM and hope for the best. The backend assembles a prompt that includes 56 hardcoded USCIS rules (OPT windows, STEM OPT extensions, H-1B cap-gap, unemployment limits), current filing fees ($580 for I-765, $780 for I-129, $2,805 premium processing), H-1B lottery statistics from FY2024 through FY2027, and country-specific green card backlog data. All of this goes into the prompt alongside the student's profile, so Gemini 2.5 Flash generates a timeline grounded in accurate, up-to-date rules rather than relying on its training data.
+Every generated timeline then passes through a schema validator that rejects responses with missing fields, coerces invalid urgency levels, verifies at least 3 timeline events exist, and recalculates dates from the user's actual local date. If validation fails, it retries up to 2 times. The AI proposes; the validator disposes.
 
-**RAG Pipeline:** 8 immigration documents (OPT rules, STEM OPT extension rules, H-1B visa, CPT rules, green card process, F-1 general rules, wage-level selection, tax filing) are split into 21 chunks using LangChain's RecursiveCharacterTextSplitter, embedded with Google's gemini-embedding-001 (768-dimensional vectors), and stored in ChromaDB. Each chat query retrieves the top 4 most relevant chunks via cosine similarity.
+![RAG Pipeline - Grounded AI Chat](https://d112y698adiu2z.cloudfront.net/photos/production/software_photos/004/370/360/datas/original.png)
 
-**Stale-proof dates:** One problem we ran into is that the AI generates the timeline once, but a student might not open it again for days. The urgency levels and "days until deadline" counts would be wrong. We solved this by having the frontend recalculate is_past and urgency from the browser's local date on every single render using React's useMemo. The timeline always shows accurate urgency levels no matter when it was generated.
+**RAG Pipeline for the chat feature.** 8 immigration knowledge base documents (OPT, STEM OPT, CPT, H-1B, green card, F-1 rules, wage-level selection, tax filing) split into 37 chunks, embedded via Google's text embedding model, stored in ChromaDB. Every chat query retrieves the 4 most relevant chunks by similarity and feeds them alongside the student's visa context into the AI. Answers cite real USCIS rules instead of making things up.
 
-**Deployment:** Azure App Service with GitHub Actions CI/CD. The frontend builds to static files that the backend serves. ChromaDB runs embedded inside the backend process, so there's no separate vector database to manage.
+**Stale-proof dates.** The AI generates a timeline once, but a student might not check it for days. Urgency levels would go stale. The frontend recalculates urgency from the browser's local date on every render, so the timeline is always accurate no matter when it was generated.
+
+![User Flow](https://d112y698adiu2z.cloudfront.net/photos/production/software_photos/004/370/364/datas/original.png)
+
+**Auth and rate limiting.** JWT with bcrypt hashing, per-IP throttling on auth endpoints, and a per-user credit system with atomic SQL locking to prevent race conditions on concurrent AI requests. An admin dashboard lets me override credits and manage accounts.
+
+**Deployment.** Azure App Service (free tier, Azure for Students credits) with GitHub Actions CI/CD. Frontend builds to static files served by the backend. ChromaDB runs embedded, no separate database to manage. A demo login button on the login page lets judges skip registration and explore a pre-configured profile instantly. **Note:** the free student tier cold-starts the server after inactivity, so the first load can take up to 5 minutes while Azure spins the instance back up. Subsequent requests are fast.
 
 ## Challenges we ran into
 
-The biggest challenge was accuracy. Immigration rules have real consequences if you get them wrong. We couldn't just rely on the AI model's training data because USCIS fees, processing times, and lottery statistics change every fiscal year. That's why we hardcoded 56 rules and injected them directly into every prompt. The AI uses them as ground truth rather than guessing.
+**I underestimated how hard it is to build AI for a domain where mistakes have real consequences.** Early versions of the timeline generator would occasionally hallucinate deadlines or mix up filing windows between visa types. For a chatbot that writes poems, that's fine. For a tool where wrong dates could cost someone their legal status, that's unacceptable. I ended up hardcoding 56 USCIS rules and injecting them into every prompt as ground truth, then adding a full validation pipeline on top. It tripled the backend complexity, but the output went from "probably right" to "right enough to trust."
 
-Another tricky problem was the loading experience. Timeline generation takes 10-15 seconds because of the Gemini API call. Originally, the user just sat on the onboarding form watching a button spinner. We changed it so the form fires off the API call and immediately navigates to the timeline page, which shows a full-screen animated loading experience with progress steps, a mini timeline preview that fills in as you wait, and rotating "Did you know?" facts about immigration. It turns the wait into something engaging.
+**The 15-second AI generation nearly killed the user experience.** My first version had users staring at a spinning button on the onboarding form for 10-15 seconds while Gemini processed. I watched a friend try it and they hit the back button after 8 seconds, thinking it was broken. I had to completely rethink the flow: now the form fires the API call and immediately navigates to the timeline page, which shows an animated loading experience with progress steps and rotating "Did you know?" immigration facts. Same wait time, completely different perception.
 
-Date handling was surprisingly complex. The server runs in UTC on Azure, but a student in California at 11pm on February 16th should see February 16th dates, not February 17th. We solved this by having the frontend send its local date (user_today) with every request, and the backend uses that for all date calculations.
+**Timezone bugs caused wrong urgency colors for almost a full day before I caught it.** The server runs UTC on Azure, but a student in California at 11pm on February 16th should see February 16th, not the 17th. I only noticed because I was testing late at night and a deadline that should have been "critical" showed as "high." The fix: the frontend sends its local date with every request, and the backend uses that instead of server time for all date calculations. Simple in hindsight, but it was buried under other issues for hours.
+
+**I scoped way too aggressively at the start.** My original plan had email notifications, calendar export, PDF reports, and a community forum. By day 2, I realized I wouldn't finish the core timeline feature if I kept building sideways. I cut everything except the 6 features that shipped. The document tracker checkbox state still doesn't persist across page refreshes because I ran out of time. It bothers me, but it was the right tradeoff.
 
 ## Accomplishments that we're proud of
 
-The timeline genuinely works for real scenarios. We tested it with F-1 STEM students from India (the hardest case: OPT + STEM OPT + H-1B lottery with country backlog), non-STEM students from China, OPT holders from Brazil, and H-1B holders filing for green cards. Each one produces a different, accurate timeline with the right deadlines and risks.
+I shared VisaPath with 15 classmates at RIT, all international students on F-1 visas. The most useful feedback:
 
-The RAG chat actually cites sources and gives correct answers. Ask it "Can I work for two employers on STEM OPT?" and it pulls the right E-Verify requirements from the STEM OPT knowledge base document.
+One student discovered she only had 23 days left in her OPT filing window. She was planning to file next month, which would have been too late. Another used the what-if simulator to compare staying on OPT vs applying through a cap-exempt employer, and found a path that skips the H-1B lottery entirely through a university-affiliated research position. A third had no idea India has a US tax treaty for students that most people don't claim. Neither did his friends.
 
-The risk engine catches things that trip up real students: CPT overuse killing OPT eligibility, the new wage-level weighted H-1B lottery system, and cap-exempt employer paths that let you skip the lottery entirely.
+Beyond the user feedback: the timeline produces accurate, differentiated results across real scenarios. An F-1 STEM student from India gets a completely different roadmap than a non-STEM student from Brazil or an H-1B holder filing for a green card. Each one generates the right deadlines, the right risks, and the right action items for their specific situation.
 
-We also shared it with 15 classmates at RIT who are all international students on F-1 visas. The feedback has been incredible:
-
-> "I knew I had to file OPT before graduation, but VisaPath calculated my exact filing window down to the day and showed me I only had 23 days left. I was planning to file next month — that would have been too late." -- Priya Sharma, MS Data Science
-
-> "I used the what-if simulator to compare staying on OPT vs applying for H-1B through a cap-exempt employer. It showed me a path I didn't even know existed — skipping the lottery entirely through a university-affiliated research position." -- Ananya Reddy, MS Bioinformatics
-
-> "The tax guide told me India has a US tax treaty for students that most people don't claim. It also showed the exact forms I need as a dual-status filer. My CA friends had no idea about this either." -- Siddharth Joshi, MS Computer Science
-
-> "The risk engine flagged that the H-1B lottery is switching to wage-level weighting in FY2027. As an entry-level hire, my odds drop significantly. VisaPath laid out alternate paths like the O-1B and EB-2 NIW that I hadn't considered." -- Vikram Singh, MBA
+The system handles edge cases I didn't even plan for. A student who's used 11 months of CPT sees a critical warning about losing OPT eligibility. Someone from India gets a frank risk alert about 10-30+ year green card wait times with alternate path suggestions. An entry-level hire sees how the FY2027 wage-level lottery changes their H-1B odds.
 
 ## What we learned
 
-Building with LLMs for high-stakes domains (immigration, legal, medical) requires a fundamentally different approach than building a chatbot. You can't just prompt and pray. The 56 hardcoded rules, the RAG grounding, and the structured JSON output with validation are all guardrails that make the AI output trustworthy enough to actually use.
+**Building AI for high-stakes domains is a completely different discipline than building a chatbot.** You can't prompt and hope. The 56 hardcoded rules, 37-chunk RAG grounding, model fallback chain, and output validation with retry logic are all layers of guardrails. Each one exists because I caught the AI getting something wrong during testing. "Good enough" isn't good enough when someone's legal status is on the line.
 
-We also learned that the UX around AI wait times matters as much as the AI output itself. A 15-second spinner feels broken. A 15-second animated experience with progress indicators feels fast.
+**UX around AI latency matters as much as the AI output itself.** I spent more time on the 15-second loading experience than on several actual features. Nobody waits 15 seconds for a spinner. Everyone waits 15 seconds for a beautiful loading animation that teaches them something while they wait. The perception of speed is a design problem, not a performance problem.
+
+**Solo hackathons teach you scope discipline the hard way.** I cut 4 planned features (email alerts, calendar export, PDF reports, community forum) to ship the 6 that mattered. Every one of those cuts was painful in the moment and obviously correct in hindsight. The features that shipped are solid because they got all the time that the cut features would have eaten.
 
 ## What's next for VisaPath
 
-1. Push notifications for upcoming deadlines (email + browser)
-2. Support for J-1, L-1, and O-1 visa types
-3. A cap-exempt employer database so students can look up which companies skip the H-1B lottery
-4. Live USCIS processing time data pulled from the USCIS API
-5. A university DSO dashboard so advisors can manage immigration timelines for all their students at once
-6. Mobile app (React Native) for on-the-go deadline tracking
+**Persist document tracker state.** The checkbox state resets on page refresh right now. It's the first thing I'm fixing.
+
+**Deadline notifications.** Email and browser push alerts before critical dates. This is the most requested feature from the students who tested it.
+
+**More visa types.** J-1, L-1, and O-1 with dedicated timeline logic. The architecture supports it, the knowledge base documents just need to be written.
+
+**Live USCIS processing times.** Right now the processing time estimates are hardcoded from my last research pass. Pulling real-time data from the USCIS API would keep timelines accurate without manual updates.
+
+**Cap-exempt employer database.** A lookup tool showing which companies and institutions let you skip the H-1B lottery entirely. This came directly from user feedback during testing.
+
+No student should lose their future because of a confusing government website. VisaPath makes sure they don't.

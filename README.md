@@ -1,6 +1,6 @@
 # VisaPath
 
-### AI Immigration Timeline Planner | Nexora Hacks 2026
+### AI Immigration Timeline Planner | DevDash 2026
 
 An AI powered web app that helps international students in the US track every visa deadline, risk, and milestone in one personalized timeline.
 
@@ -77,20 +77,169 @@ For the chat feature, 8 immigration documents are chunked and embedded into Chro
 
 ## Architecture
 
-Full architecture docs with Mermaid diagrams and API reference: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+Full architecture docs with API reference: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
+### System Overview
+
+```mermaid
+graph TB
+    subgraph Frontend["Frontend: React 19 + Vite 7 + Tailwind v4"]
+        AUTH["Auth Screen"]
+        OF["Onboarding Form"]
+        TD["Timeline Dashboard"]
+        WIF["What-If Simulator"]
+        CP["AI Chat Panel"]
+        DT["Document Tracker"]
+        TXG["Tax Guide"]
+        API_CLIENT["API Client"]
+        AUTH & OF & TD & WIF & CP & DT & TXG --> API_CLIENT
+    end
+
+    subgraph Backend["Backend: Python 3.13 + FastAPI"]
+        subgraph Routes["API Routes"]
+            R1["POST /api/generate-timeline"]
+            R2["POST /api/chat"]
+            R3["GET /api/required-documents"]
+            R4["POST /api/tax-guide"]
+            R_AUTH["Auth Routes"]
+        end
+
+        subgraph Middleware["Middleware"]
+            RL["Rate Limiter"]
+            JWT["JWT Auth"]
+        end
+
+        subgraph Services["Services"]
+            TG["AI Timeline Generator"]
+            RA["Risk Analyzer"]
+            CS["Chat Service"]
+            RAG["RAG Service"]
+            GS["Gemini Service"]
+            AS["Auth Service"]
+        end
+
+        subgraph Data["Data Layer"]
+            DB["SQLite / PostgreSQL"]
+            IR["56 USCIS Rules + Fees"]
+            CB["Country Backlogs"]
+        end
+
+        subgraph VectorDB["Vector Store"]
+            CHROMA["ChromaDB - 37 chunks"]
+        end
+
+        R_AUTH --> AS --> DB
+        R1 --> TG & RA
+        R2 --> CS
+        R3 --> Data
+        R4 --> GS
+        TG & RA --> IR & CB
+        TG --> GS
+        CS --> RAG --> CHROMA
+        CS --> GS
+    end
+
+    subgraph External["External APIs"]
+        GEMINI["Google Gemini API"]
+    end
+
+    API_CLIENT -->|"REST API / JSON"| Routes
+    Routes --> Middleware
+    GS --> GEMINI
+    RAG -->|"Embedding requests"| GEMINI
 ```
-React Frontend (SPA)
-    |
-    | REST API (JSON over HTTPS)
-    v
-FastAPI Backend
-    |
-    |-- Timeline Generator --> 56 USCIS Rules + Fees + Backlogs --> Gemini 2.5 Flash
-    |-- Chat Service --------> ChromaDB RAG (21 chunks) ---------> Gemini 2.5 Flash
-    |-- Tax Guide Service ---> RAG Context ---------------------> Gemini 2.5 Flash
-    |-- Auth Service --------> SQLite / PostgreSQL
-    |-- Risk Analyzer -------> Immigration Rules + Country Data
+
+### Timeline Generation Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant FE as Frontend
+    participant API as FastAPI
+    participant TG as Timeline Generator
+    participant Data as 56 USCIS Rules + Fees
+    participant Gemini as Gemini 2.5 Flash
+    participant RA as Risk Analyzer
+
+    User->>FE: Completes onboarding form
+    FE->>FE: Navigate to /timeline immediately
+    FE->>API: POST /generate-timeline + user_today
+    API->>TG: generate_timeline(input, user_today)
+    TG->>Data: Load rules, fees, backlogs, lottery stats
+    Data-->>TG: 56 rules + country data + H-1B stats
+    TG->>Gemini: Structured prompt with all context
+    Gemini-->>TG: JSON timeline response
+    TG->>TG: Validate schema, coerce urgency, recalc dates
+    TG-->>API: timeline_events[]
+    API->>RA: analyze_risks(profile, events)
+    RA-->>API: risk_alerts[]
+    API-->>FE: {timeline_events, risk_alerts, current_status}
+    FE->>FE: Recalculate urgency from browser date
+    FE-->>User: Interactive timeline rendered
+```
+
+### RAG Pipeline - Grounded AI Chat
+
+```mermaid
+graph LR
+    subgraph Ingestion["1. Ingestion (one time)"]
+        direction TB
+        DOCS["8 immigration docs"]
+        SPLIT["Text Splitter<br/>1000 chars, 200 overlap"]
+        CHUNKS["37 text chunks"]
+        EMBED_I["gemini-embedding-001<br/>768-dim vectors"]
+        STORE["ChromaDB"]
+        DOCS --> SPLIT --> CHUNKS --> EMBED_I --> STORE
+    end
+
+    subgraph Retrieval["2. Retrieval (per query)"]
+        direction TB
+        QUERY["User question"]
+        EMBED_Q["Embed query"]
+        SEARCH["Cosine similarity<br/>top k=4"]
+        RESULTS["4 relevant chunks"]
+        QUERY --> EMBED_Q --> SEARCH --> RESULTS
+    end
+
+    subgraph Generation["3. Generation"]
+        direction TB
+        PROMPT["System prompt +<br/>User context +<br/>RAG chunks +<br/>Question"]
+        LLM["Gemini 2.5 Flash"]
+        RESPONSE["Grounded response<br/>with USCIS citations"]
+        PROMPT --> LLM --> RESPONSE
+    end
+
+    STORE -.->|"Vector store"| SEARCH
+    RESULTS --> PROMPT
+```
+
+### User Flow
+
+```mermaid
+flowchart TB
+    START(["Student visits VisaPath"])
+    START --> LOGIN["Login / Register"]
+    LOGIN --> DEMO["Demo Login<br/>Pre-configured for judges"]
+    LOGIN --> REG["Email + Password"]
+
+    DEMO --> TIMELINE
+    REG --> ONBOARD
+
+    subgraph ONBOARD["4-Step Onboarding"]
+        direction LR
+        S1["Visa + Degree"] --> S2["STEM + Grad Date"] --> S3["CPT + Country"] --> S4["Career Goal"]
+    end
+
+    ONBOARD -->|"Fire API + navigate"| LOADING["Animated Loading<br/>10-15 seconds"]
+    LOADING --> TIMELINE
+
+    TIMELINE["Timeline Dashboard"] --> RISKS["Risk Alerts"]
+    TIMELINE --> CHAT["AI Chat (RAG)"]
+    TIMELINE --> WHATIF["What-If Simulator"]
+    TIMELINE --> TAX["Tax Guide"]
+    TIMELINE --> DOCS["Document Tracker"]
+
+    WHATIF -->|"Re-generate"| LOADING
 ```
 
 ## Setup & Installation
@@ -242,4 +391,4 @@ All immigration guidance in the app includes disclaimers that it's general infor
 
 ## License
 
-Built for Nexora Hacks 2026. All rights reserved.
+Built for DevDash 2026. All rights reserved.
