@@ -391,4 +391,4 @@ All immigration guidance in the app includes disclaimers that it's general infor
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+Copyright (c) 2026 Dileep Kumar Sharma. All rights reserved. This source code is not licensed for reuse, modification, or distribution without explicit written permission from the author.
